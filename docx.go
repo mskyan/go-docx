@@ -27,6 +27,7 @@ import (
 	"encoding/xml"
 	"io"
 	"io/fs"
+	"log"
 	"os"
 	"sync"
 )
@@ -96,6 +97,7 @@ func Parse(reader io.ReaderAt, size int64) (doc *Docx, err error) {
 		return nil, err
 	}
 	doc, err = unpack(zipReader)
+	log.Println("docxlib.Parse: unpacked")
 	return
 }
 

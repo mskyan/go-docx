@@ -23,6 +23,7 @@ package docx
 import (
 	"encoding/xml"
 	"io"
+	"log"
 	"reflect"
 	"strings"
 )
@@ -48,6 +49,7 @@ type ParagraphProperties struct {
 
 // UnmarshalXML ...
 func (p *ParagraphProperties) UnmarshalXML(d *xml.Decoder, _ xml.StartElement) error {
+	log.Println("UnmarshalXML ParagraphProperties")
 	for {
 		t, err := d.Token()
 		if err == io.EOF {
