@@ -157,6 +157,9 @@ func (p *ParagraphProperties) UnmarshalXML(d *xml.Decoder, _ xml.StartElement) e
 				}
 				p.OverflowPunct = &value
 			default:
+				// 取り損ねた値を log に表示
+				log.Println("UnmarshalXML ParagraphProperties unsupported, skip:", tt.Name.Local)
+
 				err = d.Skip() // skip unsupported tags
 				if err != nil {
 					return err

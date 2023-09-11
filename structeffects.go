@@ -26,6 +26,10 @@ import (
 	"strings"
 )
 
+// NOTE:
+// numPr や keepNext を足すならこのファイル内で定義するのが相応しそう。
+// Word の段落番号、箇条書きに対応させたい目論見。
+
 // RunStyle contains styling for a run
 type RunStyle struct {
 	XMLName xml.Name `xml:"w:rStyle,omitempty"`
