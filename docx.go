@@ -42,6 +42,8 @@ type Docx struct {
 	media        []Media
 	mediaNameIdx map[string]int
 
+	Numbering Numbering
+
 	rID       uintptr
 	imageID   uintptr
 	docID     uintptr

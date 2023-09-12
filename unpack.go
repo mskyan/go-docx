@@ -58,6 +58,13 @@ func unpack(zipReader *zip.Reader) (docx *Docx, err error) {
 			}
 			continue
 		}
+		if f.Name == "word/numbering.xml" {
+			err = docx.parseNumbering(f)
+			if err != nil {
+				return
+			}
+			continue
+		}
 		if strings.HasPrefix(f.Name, MEDIA_FOLDER) {
 			err = docx.parseMedia(f)
 			if err != nil {
@@ -143,4 +150,18 @@ func (f *Docx) parseMedia(file *zip.File) error {
 	f.mediaNameIdx[name] = len(f.media)
 	f.media = append(f.media, Media{Name: name, Data: data})
 	return zf.Close()
+}
+
+// TODO numbering.xml をパースする用
+func (f *Docx) parseNumbering(file *zip.File) error {
+	zf, err := file.Open()
+	if err != nil {
+		return err
+	}
+	defer zf.Close()
+
+	f.Numbering.XMLName.Local = "numbering"
+
+	err = xml.NewDecoder(zf).Decode(&f.Numbering)
+	return err
 }
