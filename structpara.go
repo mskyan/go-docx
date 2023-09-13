@@ -29,6 +29,7 @@ import (
 )
 
 // ParagraphProperties <w:pPr>
+// Properties in this struct are defined in structeffects.go
 type ParagraphProperties struct {
 	XMLName        xml.Name `xml:"w:pPr,omitempty"`
 	Tabs           *Tabs
@@ -43,13 +44,14 @@ type ParagraphProperties struct {
 	SnapToGrid     *SnapToGrid
 	Kinsoku        *Kinsoku
 	OverflowPunct  *OverflowPunct
+	NumPr          *NumPr
+	KeepNext       *KeepNext
 
 	RunProperties *RunProperties
 }
 
 // UnmarshalXML ...
 func (p *ParagraphProperties) UnmarshalXML(d *xml.Decoder, _ xml.StartElement) error {
-	log.Println("UnmarshalXML ParagraphProperties")
 	for {
 		t, err := d.Token()
 		if err == io.EOF {
@@ -156,6 +158,24 @@ func (p *ParagraphProperties) UnmarshalXML(d *xml.Decoder, _ xml.StartElement) e
 					return err
 				}
 				p.OverflowPunct = &value
+			case "numPr":
+				var value NumPr
+				err = d.DecodeElement(&value, &tt)
+				if err != nil && !strings.HasPrefix(err.Error(), "expected") {
+					return err
+				}
+				p.NumPr = &value
+			case "keepNext":
+				var value KeepNext
+				v := getAtt(tt.Attr, "val")
+				if v == "" {
+					continue
+				}
+				value.Val, err = GetInt(v)
+				if err != nil {
+					return err
+				}
+				p.KeepNext = &value
 			default:
 				// 取り損ねた値を log に表示
 				log.Println("UnmarshalXML ParagraphProperties unsupported, skip:", tt.Name.Local)
@@ -187,6 +207,10 @@ type Paragraph struct {
 }
 
 func (p *Paragraph) String() string {
+	// rPr は Children の中には、含まれず、p.Properties に含まれる
+	// 並びとしては、連動しているので、Children に他と同様に含めた方が
+	// 表示処理上は。都合が良い。
+
 	sb := strings.Builder{}
 	for _, c := range p.Children {
 		switch o := c.(type) {
@@ -223,6 +247,11 @@ func (p *Paragraph) String() string {
 					}
 				}
 			}
+		// pPr
+		case *ParagraphProperties:
+			// log.Println("ParagraphProperties detected, skip")
+
+			continue
 		default:
 			continue
 		}
@@ -295,7 +324,11 @@ func (p *Paragraph) UnmarshalXML(d *xml.Decoder, _ xml.StartElement) error {
 					return err
 				}
 				p.Properties = &value
-				continue
+
+				// これも、Children に含めてみる。
+				// 構造上、正しい。
+				elem = &value
+				// continue
 			default:
 				err = d.Skip() // skip unsupported tags
 				if err != nil {
