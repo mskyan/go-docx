@@ -467,6 +467,46 @@ func (n *NumPr) UnmarshalXML(d *xml.Decoder, start xml.StartElement) (err error)
 	return nil
 }
 
+// UnmarshalXML NumID
+func (n *NumID) UnmarshalXML(d *xml.Decoder, start xml.StartElement) (err error) {
+	for _, attr := range start.Attr {
+		switch attr.Name.Local {
+		case "val":
+			n.Val, err = GetInt(attr.Value)
+			if err != nil {
+				return
+			}
+		default:
+			// ignore other attributes
+		}
+	}
+
+	// Consume the end element
+	_, err = d.Token()
+	return
+}
+
+// UnmarshalXML Ilvl
+func (i *Ilvl) UnmarshalXML(d *xml.Decoder, start xml.StartElement) (err error) {
+	for _, attr := range start.Attr {
+		switch attr.Name.Local {
+		case "val":
+			i.Val, err = GetInt(attr.Value)
+			if err != nil {
+				return
+			}
+		default:
+			// ignore other attributes
+		}
+	}
+
+	// Consume the end element
+	_, err = d.Token()
+	return
+}
+
+// 0: false, 1: true
+// 段落が次の段落と同じページに表示されるようにするかどうかを指定します。
 func (k *KeepNext) UnmarshalXML(d *xml.Decoder, start xml.StartElement) (err error) {
 	for _, attr := range start.Attr {
 		switch attr.Name.Local {

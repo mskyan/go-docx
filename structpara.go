@@ -210,6 +210,18 @@ func (p *Paragraph) String() string {
 	// rPr は Children の中には、含まれず、p.Properties に含まれる
 	// 並びとしては、連動しているので、Children に他と同様に含めた方が
 	// 表示処理上は。都合が良い。
+	//
+	// numberting.xml のを内容を読み取る必要がある。
+	// p.file *Docx から struct 加工済み numbering.xml を取得できるようにする。
+
+	// if (*p.file).Numbering.XMLName.Local == "" {
+	// 	log.Println("Paragraph.Numbering is not set, skip")
+	// } else {
+	// 	log.Println("Paragraph.Numbering is set, proceed")
+	// }
+
+	// NUmID の Val は int と定義。structnumbering 側もいずれ合わせる。
+	numPrMap := make(map[int]*NumPr)
 
 	sb := strings.Builder{}
 	for _, c := range p.Children {
@@ -249,7 +261,19 @@ func (p *Paragraph) String() string {
 			}
 		// pPr
 		case *ParagraphProperties:
-			// log.Println("ParagraphProperties detected, skip")
+			// NumPr と KeepNext の値があるかどうか。
+			if o.NumPr != nil {
+				numId := o.NumPr.NumID.Val
+				log.Println("ParagraphProperties.NumPr is set, numId:", numId)
+				// numId は、対応する Numbering struct の値とともに
+				// 記録しておく。
+				// log.Println("ParagraphProperties.NumPr is set, proceed")
+
+				numPrMap[numId] = o.NumPr
+			}
+			if o.KeepNext != nil {
+				log.Println("ParagraphProperties.KeepNext is set, proceed")
+			}
 
 			continue
 		default:
