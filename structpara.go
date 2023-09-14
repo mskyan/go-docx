@@ -221,7 +221,6 @@ func (p *Paragraph) String() string {
 	// }
 
 	// NUmID の Val は int と定義。structnumbering 側もいずれ合わせる。
-	numPrMap := make(map[int]*NumPr)
 
 	sb := strings.Builder{}
 	for _, c := range p.Children {
@@ -263,13 +262,15 @@ func (p *Paragraph) String() string {
 		case *ParagraphProperties:
 			// NumPr と KeepNext の値があるかどうか。
 			if o.NumPr != nil {
+				ilvl := o.NumPr.Ilvl.Val
 				numId := o.NumPr.NumID.Val
-				log.Println("ParagraphProperties.NumPr is set, numId:", numId)
+				// log.Println("ParagraphProperties.NumPr is set, numId:", numId)
 				// numId は、対応する Numbering struct の値とともに
 				// 記録しておく。
 				// log.Println("ParagraphProperties.NumPr is set, proceed")
 
-				numPrMap[numId] = o.NumPr
+				numbered := getNumberedString(p, ilvl, numId)
+				sb.WriteString(numbered)
 			}
 			if o.KeepNext != nil {
 				log.Println("ParagraphProperties.KeepNext is set, proceed")
@@ -281,6 +282,14 @@ func (p *Paragraph) String() string {
 		}
 	}
 	return sb.String()
+}
+
+var numPrMap = make(map[int]*NumPr)
+
+func getNumberedString(p *Paragraph, ilvl, numId int) string {
+
+	// todo
+	return ""
 }
 
 // UnmarshalXML ...
