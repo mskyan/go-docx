@@ -262,18 +262,12 @@ func (p *Paragraph) String() string {
 		case *ParagraphProperties:
 			// NumPr と KeepNext の値があるかどうか。
 			if o.NumPr != nil {
-				ilvl := o.NumPr.Ilvl.Val
-				numId := o.NumPr.NumID.Val
-				// log.Println("ParagraphProperties.NumPr is set, numId:", numId)
-				// numId は、対応する Numbering struct の値とともに
-				// 記録しておく。
-				// log.Println("ParagraphProperties.NumPr is set, proceed")
-
-				numbered := getNumberedString(p, ilvl, numId)
+				numbered := getNumberedString(p, o.NumPr)
 				sb.WriteString(numbered)
 			}
 			if o.KeepNext != nil {
-				log.Println("ParagraphProperties.KeepNext is set, proceed")
+				// log.Println("ParagraphProperties.KeepNext is set, proceed")
+				// TODO
 			}
 
 			continue
@@ -284,9 +278,19 @@ func (p *Paragraph) String() string {
 	return sb.String()
 }
 
-var numPrMap = make(map[int]*NumPr)
+// key is NumPr.NumId, value is Numbering
+var numberingMap = make(map[int]*Numbering)
 
-func getNumberedString(p *Paragraph, ilvl, numId int) string {
+func getNumberedString(p *Paragraph, numPr *NumPr) string {
+	// func getNumberedString(p *Paragraph, ilvl, numId int) string {
+	realNumPr := *numPr
+	numbering := numberingMap[realNumPr.NumID.Val]
+	if numbering == nil {
+		numbering = &p.file.Numbering
+		// ilvl := realNumPr.Ilvl.Val
+		// numId := realNumPr.NumID.Val
+
+	}
 
 	// todo
 	return ""

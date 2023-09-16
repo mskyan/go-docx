@@ -68,3 +68,11 @@ func GetInt(s string) (int, error) {
 	_, err = fmt.Sscanf(s, "%d", &v)
 	return v, err
 }
+
+// コードの繰り返しの無駄を省くため
+func SaveIntIfNoErr(intRef *int, s string) {
+	v, err := GetInt(s)
+	if err == nil {
+		*intRef = v
+	}
+}

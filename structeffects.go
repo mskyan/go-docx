@@ -345,53 +345,17 @@ func (i *Ind) UnmarshalXML(d *xml.Decoder, start xml.StartElement) (err error) {
 	for _, attr := range start.Attr {
 		switch attr.Name.Local {
 		case "leftChars":
-			if attr.Value == "" {
-				continue
-			}
-			i.LeftChars, err = GetInt(attr.Value)
-			if err != nil {
-				return
-			}
+			SaveIntIfNoErr(&i.LeftChars, attr.Value)
 		case "left":
-			if attr.Value == "" {
-				continue
-			}
-			i.Left, err = GetInt(attr.Value)
-			if err != nil {
-				return
-			}
+			SaveIntIfNoErr(&i.Left, attr.Value)
 		case "firstLineChars":
-			if attr.Value == "" {
-				continue
-			}
-			i.FirstLineChars, err = GetInt(attr.Value)
-			if err != nil {
-				return
-			}
+			SaveIntIfNoErr(&i.FirstLineChars, attr.Value)
 		case "firstLine":
-			if attr.Value == "" {
-				continue
-			}
-			i.FirstLine, err = GetInt(attr.Value)
-			if err != nil {
-				return
-			}
+			SaveIntIfNoErr(&i.FirstLine, attr.Value)
 		case "hangingChars":
-			if attr.Value == "" {
-				continue
-			}
-			i.HangingChars, err = GetInt(attr.Value)
-			if err != nil {
-				return
-			}
+			SaveIntIfNoErr(&i.HangingChars, attr.Value)
 		case "hanging":
-			if attr.Value == "" {
-				continue
-			}
-			i.Hanging, err = GetInt(attr.Value)
-			if err != nil {
-				return
-			}
+			SaveIntIfNoErr(&i.Hanging, attr.Value)
 		default:
 			// ignore other attributes
 		}
