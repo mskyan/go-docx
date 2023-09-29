@@ -64,7 +64,7 @@ func unpack(zipReader *zip.Reader) (docx *Docx, err error) {
 				return
 			}
 			// log.Println("numbering struct:")
-			PrettyPrintStruct(docx.Numbering)
+			// PrettyPrintStruct(docx.Numbering)
 			continue
 		}
 		if strings.HasPrefix(f.Name, MEDIA_FOLDER) {

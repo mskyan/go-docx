@@ -20,6 +20,7 @@ package docx
 import (
 	"encoding/xml"
 	"io"
+	"log"
 )
 
 type CommonAttrVal struct {
@@ -33,14 +34,14 @@ func (c *CommonAttrVal) UnmarshalXML(d *xml.Decoder, start xml.StartElement) (er
 
 type Numbering struct {
 	XMLName      xml.Name       `xml:"numbering"`
-	AbstructNums *[]AbstractNum `xml:"abstructNmum",omitempty`
+	AbstractNums *[]AbstractNum `xml:"abstructNmum",omitempty`
 	Nums         *[]Num         `xml:"num",omitempty`
 }
 
 type AbstractNum struct {
-	XMLName        xml.Name `xml:"abstructNum",omitempty`
-	AbstractNumID  string   `xml:"w:abstractNumId,attr"`
-	Lvl            *[]Lvl   `xml:"lvl"`
+	XMLName        xml.Name      `xml:"abstructNum",omitempty`
+	AbstractNumID  string        `xml:"w:abstractNumId,attr"`
+	Lvl            *map[int]*Lvl `xml:"lvl"`
 	NSID           *NSID
 	MultiLevelType *MultiLevelType `xml:"multiLevelType",omitempty`
 	Tmpl           *Tmpl           `xml:"tmpl",omitempty`
@@ -79,7 +80,7 @@ type Tmpl struct {
 
 type Lvl struct {
 	XMLName   xml.Name `xml:"lvl",omitempty`
-	ILvl      string   `xml:"w:ilvl,attr"`
+	ILvl      int      `xml:"w:ilvl,attr"`
 	Tplc      string   `xml:"w:tplc,attr"`
 	Tentative string   `xml:"w:tentative,attr"`
 
@@ -131,10 +132,10 @@ func (n *Numbering) UnmarshalXML(d *xml.Decoder, _ xml.StartElement) error {
 				if err != nil {
 					return err
 				}
-				if n.AbstructNums == nil {
-					n.AbstructNums = &[]AbstractNum{}
+				if n.AbstractNums == nil {
+					n.AbstractNums = &[]AbstractNum{}
 				}
-				*n.AbstructNums = append(*n.AbstructNums, an)
+				*n.AbstractNums = append(*n.AbstractNums, an)
 			case "num":
 				var num Num
 				err = d.DecodeElement(&num, &tt)
@@ -154,7 +155,7 @@ func (n *Numbering) UnmarshalXML(d *xml.Decoder, _ xml.StartElement) error {
 	return nil
 }
 
-// AbstructNum UnmarshalXML ...
+// AbstractNum UnmarshalXML ...
 func (a *AbstractNum) UnmarshalXML(d *xml.Decoder, start xml.StartElement) (err error) {
 	for _, attr := range start.Attr {
 		switch attr.Name.Local {
@@ -180,9 +181,9 @@ func (a *AbstractNum) UnmarshalXML(d *xml.Decoder, start xml.StartElement) (err 
 				l := Lvl{}
 				err = d.DecodeElement(&l, &tt)
 				if a.Lvl == nil {
-					a.Lvl = &[]Lvl{}
+					a.Lvl = &map[int]*Lvl{}
 				}
-				*a.Lvl = append(*a.Lvl, l)
+				(*a.Lvl)[l.ILvl] = &l
 			case "nsid":
 				n := NewNSID()
 				err = d.DecodeElement(n, &tt)
@@ -196,8 +197,17 @@ func (a *AbstractNum) UnmarshalXML(d *xml.Decoder, start xml.StartElement) (err 
 				err = d.DecodeElement(t, &tt)
 				(*a).Tmpl = t
 			}
+			if err != nil {
+				return err
+			}
 		}
 	}
+	// log.Println("a.Lvl: ", *a.Lvl)
+	// a.Lvl の各要素の実態を表示
+	// ここまでは正確に処理されていた。
+	// for _, v := range *a.Lvl {
+	// 	log.Println("v.LvlText.Val: ", v.LvlText.Val)
+	// }
 
 	return
 }
@@ -207,7 +217,7 @@ func (l *Lvl) UnmarshalXML(d *xml.Decoder, start xml.StartElement) (err error) {
 	for _, attr := range start.Attr {
 		switch attr.Name.Local {
 		case "ilvl":
-			l.ILvl = attr.Value
+			l.ILvl, err = GetInt(attr.Value)
 		case "tplc":
 			l.Tplc = attr.Value
 		case "tentative":
@@ -258,6 +268,7 @@ func (l *Lvl) UnmarshalXML(d *xml.Decoder, start xml.StartElement) (err error) {
 				if err != nil {
 					return err
 				}
+				// log.Println("lt: ", lt.Val)
 				l.LvlText = lt
 			case "lvlJc":
 				lj := NewLvlJc()
@@ -318,6 +329,9 @@ func commonSetAttrVal(a *CommonAttrVal, d *xml.Decoder, start xml.StartElement) 
 	for _, attr := range start.Attr {
 		switch attr.Name.Local {
 		case "val":
+			if a.Val != "" {
+				log.Printf("commonSetAttrVal: %s is already set", attr.Name.Local)
+			}
 			a.Val = attr.Value
 		default:
 			// ignore other attributes
