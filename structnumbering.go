@@ -34,12 +34,12 @@ func (c *CommonAttrVal) UnmarshalXML(d *xml.Decoder, start xml.StartElement) (er
 
 type Numbering struct {
 	XMLName      xml.Name       `xml:"numbering"`
-	AbstractNums *[]AbstractNum `xml:"abstructNmum",omitempty`
+	AbstractNums *[]AbstractNum `xml:"abstractNmum",omitempty`
 	Nums         *[]Num         `xml:"num",omitempty`
 }
 
 type AbstractNum struct {
-	XMLName        xml.Name      `xml:"abstructNum",omitempty`
+	XMLName        xml.Name      `xml:"abstractNum",omitempty`
 	AbstractNumID  string        `xml:"w:abstractNumId,attr"`
 	Lvl            *map[int]*Lvl `xml:"lvl"`
 	NSID           *NSID
