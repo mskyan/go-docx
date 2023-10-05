@@ -62,14 +62,25 @@ func newEmptyA4File() *Docx {
 					Type:   `http://schemas.openxmlformats.org/officeDocument/2006/relationships/fontTable`,
 					Target: "fontTable.xml",
 				},
+				{
+					ID:     "rId4",
+					Type:   `http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering`,
+					Target: "numbering.xml",
+				},
 			},
 		},
 		media:        make([]Media, 0, 64),
 		mediaNameIdx: make(map[string]int, 64),
-		rID:          3,
-		slowIDs:      make(map[string]uintptr, 64),
-		template:     "a4",
-		tmpfslst:     A4TemplateFilesList,
+		Numbering: Numbering{
+			XMLName: xml.Name{
+				Space: "w",
+			},
+			XMLW: XMLNS_W,
+		},
+		rID:      3,
+		slowIDs:  make(map[string]uintptr, 64),
+		template: "a4",
+		tmpfslst: A4TemplateFilesList,
 	}
 	docx.Document.Body.file = docx
 	return docx
