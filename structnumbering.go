@@ -38,7 +38,7 @@ type Numbering struct {
 
 	// この XML 指定は正しく働いた
 	AbstractNums *[]AbstractNum `xml:"w:abstractNum",omitempty`
-	Nums         *[]Num         `xml:"w:num",omitempty`
+	Nums         *[]*Num        `xml:"w:num",omitempty`
 }
 
 type AbstractNum struct {
@@ -54,10 +54,9 @@ type AbstractNum struct {
 }
 
 type Num struct {
-	XMLName        xml.Name `xml:"w:num",omitempty`
-	NumID          string   `xml:"w:numId,attr,omitempty"`
-	*AbstractNumID `xml:"w:abstractNumId",omitempty`
-	// AbstractNumID *AbstractNumID `xml:"w:abstractNumId",omitempty`
+	XMLName       xml.Name       `xml:"w:num",omitempty`
+	NumID         string         `xml:"w:numId,attr,omitempty"`
+	AbstractNumID *AbstractNumID `xml:"w:abstractNumId",omitempty`
 }
 
 type AbstractNumID struct {
@@ -149,9 +148,9 @@ func (n *Numbering) UnmarshalXML(d *xml.Decoder, _ xml.StartElement) error {
 					return err
 				}
 				if n.Nums == nil {
-					n.Nums = &[]Num{}
+					n.Nums = &[]*Num{}
 				}
-				*n.Nums = append(*n.Nums, num)
+				*n.Nums = append(*n.Nums, &num)
 			default:
 				// ignore other attributes
 			}
@@ -210,13 +209,6 @@ func (a *AbstractNum) UnmarshalXML(d *xml.Decoder, start xml.StartElement) (err 
 			}
 		}
 	}
-	// log.Println("a.Lvl: ", *a.Lvl)
-	// a.Lvl の各要素の実態を表示
-	// ここまでは正確に処理されていた。
-	// for _, v := range *a.Lvl {
-	// 	log.Println("v.LvlText.Val: ", v.LvlText.Val)
-	// }
-
 	return
 }
 
@@ -319,11 +311,14 @@ func (n *Num) UnmarshalXML(d *xml.Decoder, start xml.StartElement) (err error) {
 		if tt, ok := t.(xml.StartElement); ok {
 			switch tt.Name.Local {
 			case "abstractNumId":
+				// var an = AbstractNumID{}
+				// var an AbstractNumID
 				an := NewAbstractNumID()
-				err = d.DecodeElement(an, &tt)
+				err = d.DecodeElement(&an, &tt)
 				if err != nil {
 					return err
 				}
+				log.Println("an: ", an)
 				n.AbstractNumID = an
 			default:
 				// ignore other attributes

@@ -267,7 +267,7 @@ func (p *Paragraph) String() string {
 				sb.WriteString(numbered)
 			}
 			if o.KeepNext != nil {
-				// log.Println("ParagraphProperties.KeepNext is set, proceed")
+				log.Println("ParagraphProperties.KeepNext is set, proceed")
 				// TODO
 			}
 
@@ -287,7 +287,7 @@ type abstractNumFunc func(args *[]int) string
 
 var numbering *Numbering
 var abstractNums *[]AbstractNum
-var nums *[]Num
+var nums *[]*Num
 
 var numIDToAbstractNumIDMap = make(map[int]int)
 
@@ -427,7 +427,7 @@ func generateAbstractNumToFuncMap() {
 		}
 	}
 
-	log.Println("numOfFunc:", numOfFunc)
+	// log.Println("numOfFunc:", numOfFunc)
 }
 
 func getILvlCountList(abstractNumID, iLvl int, isRestart bool) *[]int {
@@ -476,15 +476,15 @@ func getAbstractNumFunc(abstractNumID int,
 
 			// int to string
 			iStr := strconv.Itoa(iLvl + 1)
-			log.Println("iStr:", iStr)
+			// log.Println("iStr:", iStr)
 
-			log.Println("lvlText(before):", lvlText)
+			// log.Println("lvlText(before):", lvlText)
 
 			lvlTextReplaced = strings.Replace(lvlText, "%"+iStr, n, -1)
-			log.Println(
-				"val:", val,
-				"n:", n,
-				"lvlTextReplaced:", lvlTextReplaced)
+			// log.Println(
+			// "val:", val,
+			// "n:", n,
+			// "lvlTextReplaced:", lvlTextReplaced)
 		}
 
 		return lvlTextReplaced
