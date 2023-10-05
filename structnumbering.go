@@ -19,13 +19,12 @@ package docx
 
 import (
 	"encoding/xml"
-	"fmt"
 	"io"
 	"log"
 )
 
 type CommonAttrVal struct {
-	Val string `xml:"w:val,attr"`
+	Val string `xml:"w:val,attr,omitempty"`
 }
 
 func (c *CommonAttrVal) UnmarshalXML(d *xml.Decoder, start xml.StartElement) (err error) {
@@ -44,9 +43,11 @@ type Numbering struct {
 
 type AbstractNum struct {
 	XMLName       xml.Name `xml:"w:abstractNum",omitempty`
-	AbstractNumID string   `xml:"w:abstractNumId,attr"`
-	Lvl           *[]Lvl   `xml:"w:lvl",omitempty"`
-	// Lvl            *map[int]*Lvl   `xml:"-",omitempty"`
+	AbstractNumID string   `xml:"w:abstractNumId,attr,omitempty"`
+
+	// この XML Marshal は正しく働いた
+	Lvl *[]*Lvl `xml:"w:lvl",omitempty"`
+
 	NSID           *NSID           `xml:"w:nsid",omitempty`
 	MultiLevelType *MultiLevelType `xml:"w:multiLevelType",omitempty`
 	Tmpl           *Tmpl           `xml:"w:tmpl",omitempty`
@@ -54,7 +55,7 @@ type AbstractNum struct {
 
 type Num struct {
 	XMLName        xml.Name `xml:"w:num",omitempty`
-	NumID          string   `xml:"w:numId,attr"`
+	NumID          string   `xml:"w:numId,attr,omitempty"`
 	*AbstractNumID `xml:"w:abstractNumId",omitempty`
 	// AbstractNumID *AbstractNumID `xml:"w:abstractNumId",omitempty`
 }
@@ -85,9 +86,9 @@ type Tmpl struct {
 
 type Lvl struct {
 	XMLName   xml.Name `xml:"w:lvl",omitempty`
-	ILvl      int      `xml:"w:ilvl,attr"`
-	Tplc      string   `xml:"w:tplc,attr"`
-	Tentative string   `xml:"w:tentative,attr"`
+	ILvl      int      `xml:"w:ilvl,attr,omitempty"`
+	Tplc      string   `xml:"w:tplc,attr,omitempty"`
+	Tentative string   `xml:"w:tentative,attr,omitempty"`
 
 	Start   *Start                 `xml:"w:start",omitempty`
 	NumFmt  *NumFmt                `xml:"w:numFmt",omitempty`
@@ -186,11 +187,11 @@ func (a *AbstractNum) UnmarshalXML(d *xml.Decoder, start xml.StartElement) (err 
 				l := Lvl{}
 				err = d.DecodeElement(&l, &tt)
 				if a.Lvl == nil {
-					a.Lvl = &[]Lvl{}
+					a.Lvl = &[]*Lvl{}
 				}
-				lvlList := paddingListIfNeeded(a.Lvl, l.ILvl).([]Lvl)
+				lvlList := paddingListIfNeeded(a.Lvl, l.ILvl).([]*Lvl)
 				a.Lvl = &lvlList
-				(*a.Lvl)[l.ILvl] = l
+				(*a.Lvl)[l.ILvl] = &l
 			case "nsid":
 				n := NewNSID()
 				err = d.DecodeElement(n, &tt)
@@ -382,13 +383,14 @@ func NewLvlJc() *LvlJc {
 }
 
 func paddingListIfNeeded(list interface{}, index int) interface{} {
-	switch v := list.(type) {
-	case *[]Lvl:
-		if index < len(*v) {
-			return v
-		}
-		return append(*v, make([]Lvl, index-len(*v)+1)...)
-	default:
-		panic(fmt.Sprintf("paddingListIfNeeded: unsupported type %T", v))
+	v := list.(*[]*Lvl)
+	// switch v := list.(type) {
+	// case *[]Lvl:
+	if index < len(*v) {
+		return v
 	}
+	return append(*v, make([]*Lvl, index-len(*v)+1)...)
+	// default:
+	// panic(fmt.Sprintf("paddingListIfNeeded: unsupported type %T", v))
+	// }
 }
