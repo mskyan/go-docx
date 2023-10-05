@@ -54,8 +54,10 @@ type AbstractNum struct {
 }
 
 type Num struct {
-	XMLName       xml.Name       `xml:"w:num",omitempty`
-	NumID         string         `xml:"w:numId,attr,omitempty"`
+	XMLName xml.Name `xml:"w:num",omitempty`
+	NumID   string   `xml:"w:numId,attr,omitempty"`
+
+	// ここはフィールド名だけだと正しく処理されない
 	AbstractNumID *AbstractNumID `xml:"w:abstractNumId",omitempty`
 }
 
