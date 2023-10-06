@@ -180,6 +180,9 @@ func (p *ParagraphProperties) UnmarshalXML(d *xml.Decoder, _ xml.StartElement) e
 				}
 				p.KeepNext = &value
 			case "keepLines":
+				// ここで、値を取得しておく。
+				// decoder に渡さないことで
+				// 閉じタグを別に造らない。
 				var value KeepLines
 				v := getAtt(tt.Attr, "val")
 				if v == "" {

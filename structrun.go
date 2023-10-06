@@ -41,6 +41,8 @@ type Run struct {
 
 	Text *Text `xml:"w:t,omitempty"`
 
+	FldChar *FldChar `xml:"w:fldChar,omitempty"`
+
 	Children []interface{}
 
 	file *Docx
@@ -100,6 +102,14 @@ func (r *Run) parse(d *xml.Decoder, tt xml.StartElement) (child interface{}, err
 			return nil, err
 		}
 		r.InstrText = value
+		return nil, nil
+	case "fldChar":
+		var value FldChar
+		err = d.DecodeElement(&value, &tt)
+		if err != nil && !strings.HasPrefix(err.Error(), "expected") {
+			return nil, err
+		}
+		r.FldChar = &value
 		return nil, nil
 	case "t":
 		var value Text
@@ -337,6 +347,25 @@ func (f *RunFonts) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 			f.HAnsi = attr.Value
 		case "hint":
 			f.Hint = attr.Value
+		}
+	}
+	// Consume the end element
+	_, err := d.Token()
+	return err
+}
+
+type FldChar struct {
+	XMLName xml.Name `xml:"w:fldChar,omitempty"`
+
+	FldCharType string `xml:"w:fldCharType,attr,omitempty"`
+}
+
+// unmarshal and get FldChar attributes
+func (f *FldChar) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	for _, attr := range start.Attr {
+		switch attr.Name.Local {
+		case "fldCharType":
+			f.FldCharType = attr.Value
 		}
 	}
 	// Consume the end element
