@@ -47,6 +47,8 @@ type ParagraphProperties struct {
 	OverflowPunct  *OverflowPunct
 	NumPr          *NumPr
 	KeepNext       *KeepNext
+	KeepLines      *KeepLines
+	WidowControl   *WidowControl
 
 	RunProperties *RunProperties
 }
@@ -177,6 +179,28 @@ func (p *ParagraphProperties) UnmarshalXML(d *xml.Decoder, _ xml.StartElement) e
 					return err
 				}
 				p.KeepNext = &value
+			case "keepLines":
+				var value KeepLines
+				v := getAtt(tt.Attr, "val")
+				if v == "" {
+					continue
+				}
+				value.Val, err = GetInt(v)
+				if err != nil {
+					return err
+				}
+				p.KeepLines = &value
+			case "widowControl":
+				var value WidowControl
+				v := getAtt(tt.Attr, "val")
+				if v == "" {
+					continue
+				}
+				value.Val, err = GetInt(v)
+				if err != nil {
+					return err
+				}
+				p.WidowControl = &value
 			default:
 				// 取り損ねた値を log に表示
 				log.Println("UnmarshalXML ParagraphProperties unsupported, skip:", tt.Name.Local)
@@ -200,6 +224,10 @@ type Paragraph struct {
 	// RsidRPr      string `xml:"w:rsidRPr,attr,omitempty"`
 	// RsidRDefault string `xml:"w:rsidRDefault,attr,omitempty"`
 	// RsidP        string `xml:"w:rsidP,attr,omitempty"`
+
+	Hyperlink     *[]*Hyperlink     `xml:"w:hyperlink,omitempty"`     // 0 or more
+	BookmarkStart *[]*BookmarkStart `xml:"w:bookmarkStart,omitempty"` // 0 or more
+	BookmarkEnd   *[]*BookmarkEnd   `xml:"w:bookmarkEnd,omitempty"`   // 0 or more
 
 	Properties *ParagraphProperties
 	Children   []interface{}
@@ -228,17 +256,21 @@ func (p *Paragraph) String() string {
 		switch o := c.(type) {
 		case *Hyperlink:
 			id := o.ID
-			text := o.Run.InstrText
-			link, err := p.file.ReferTarget(id)
-			sb.WriteString("[")
-			sb.WriteString(text)
-			sb.WriteString("](")
-			if err != nil {
-				sb.WriteString(id)
-			} else {
-				sb.WriteString(link)
+			// there are multiple Run in Hyperlink
+			// range o.Runs
+			for _, r := range *o.Runs {
+				text := r.InstrText
+				link, err := p.file.ReferTarget(id)
+				sb.WriteString("[")
+				sb.WriteString(text)
+				sb.WriteString("](")
+				if err != nil {
+					sb.WriteString(id)
+				} else {
+					sb.WriteString(link)
+				}
+				sb.WriteByte(')')
 			}
-			sb.WriteByte(')')
 		case *Run:
 			for _, c := range o.Children {
 				switch x := c.(type) {
@@ -267,7 +299,7 @@ func (p *Paragraph) String() string {
 				sb.WriteString(numbered)
 			}
 			if o.KeepNext != nil {
-				log.Println("ParagraphProperties.KeepNext is set, proceed")
+				// log.Println("ParagraphProperties.KeepNext is set, proceed")
 				// TODO
 			}
 
@@ -596,22 +628,53 @@ func (p *Paragraph) UnmarshalXML(d *xml.Decoder, _ xml.StartElement) error {
 			return err
 		}
 		if tt, ok := t.(xml.StartElement); ok {
+			// log.Println("Paragraph UnmarshalXML:", tt.Name.Local)
 			var elem interface{}
 			switch tt.Name.Local {
 			case "hyperlink":
+				// log.Println("hyperlink")
 				var value Hyperlink
 				err = d.DecodeElement(&value, &tt)
 				if err != nil && !strings.HasPrefix(err.Error(), "expected") {
 					return err
 				}
-				id := getAtt(tt.Attr, "id")
-				anchor := getAtt(tt.Attr, "anchor")
-				if id != "" {
-					value.ID = id
+				if p.Hyperlink == nil {
+					p.Hyperlink = &[]*Hyperlink{}
 				}
-				if anchor != "" {
-					value.ID = anchor
+				// id := getAtt(tt.Attr, "id")
+				// anchor := getAtt(tt.Attr, "anchor")
+				// if id != "" {
+				// 	value.ID = id
+				// }
+				// if anchor != "" {
+				// 	value.ID = anchor
+				// }
+				*p.Hyperlink = append(*p.Hyperlink, &value)
+				// log.Println("hyperlink:", value)
+				elem = &value
+			case "bookmarkStart":
+				var value BookmarkStart
+				err = d.DecodeElement(&value, &tt)
+				if err != nil && !strings.HasPrefix(err.Error(), "expected") {
+					return err
 				}
+
+				if p.BookmarkStart == nil {
+					p.BookmarkStart = &[]*BookmarkStart{}
+				}
+				*p.BookmarkStart = append(*p.BookmarkStart, &value)
+				elem = &value
+			case "bookmarkEnd":
+				var value BookmarkEnd
+				err = d.DecodeElement(&value, &tt)
+				if err != nil && !strings.HasPrefix(err.Error(), "expected") {
+					return err
+				}
+
+				if p.BookmarkEnd == nil {
+					p.BookmarkEnd = &[]*BookmarkEnd{}
+				}
+				*p.BookmarkEnd = append(*p.BookmarkEnd, &value)
 				elem = &value
 			case "r":
 				var value Run

@@ -30,7 +30,8 @@ import (
 type Hyperlink struct {
 	XMLName xml.Name `xml:"w:hyperlink,omitempty"`
 	ID      string   `xml:"r:id,attr"`
-	Run     Run
+	Anchor  string   `xml:"w:anchor,attr,omitempty"` // anchor is used for internal links
+	Runs    *[]*Run  `xml:"w:r,omitempty"`
 }
 
 // UnmarshalXML ...
@@ -46,7 +47,57 @@ func (r *Hyperlink) UnmarshalXML(d *xml.Decoder, _ xml.StartElement) error {
 
 		if tt, ok := t.(xml.StartElement); ok {
 			if tt.Name.Local == "r" {
-				err = d.DecodeElement(&r.Run, &tt)
+				run := Run{}
+				err = d.DecodeElement(&run, &tt)
+				if err != nil && !strings.HasPrefix(err.Error(), "expected") {
+					return err
+				}
+				if r.Runs == nil {
+					r.Runs = &[]*Run{&run}
+				} else {
+					*r.Runs = append(*r.Runs, &run)
+				}
+				continue
+			}
+			err = d.Skip() // skip unsupported tags
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+type BookmarkStart struct {
+	XMLName xml.Name `xml:"w:bookmarkStart,omitempty"`
+	ID      string   `xml:"w:id,attr"`
+	Name    string   `xml:"w:name,attr,omitempty"`
+	Run     Run      `xml:"w:r,omitempty"`
+}
+
+func (b *BookmarkStart) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	// log.Println("BookmarkStart", start.Attr)
+	for _, attr := range start.Attr {
+		if attr.Name.Local == "id" {
+			b.ID = attr.Value
+		}
+		if attr.Name.Local == "name" {
+			b.Name = attr.Value
+		}
+	}
+
+	for {
+		t, err := d.Token()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return err
+		}
+
+		if tt, ok := t.(xml.StartElement); ok {
+			if tt.Name.Local == "r" {
+				err = d.DecodeElement(&b.Run, &tt)
 				if err != nil && !strings.HasPrefix(err.Error(), "expected") {
 					return err
 				}
@@ -56,6 +107,35 @@ func (r *Hyperlink) UnmarshalXML(d *xml.Decoder, _ xml.StartElement) error {
 			if err != nil {
 				return err
 			}
+		}
+	}
+	return nil
+}
+
+type BookmarkEnd struct {
+	XMLName xml.Name `xml:"w:bookmarkEnd,omitempty"`
+	ID      string   `xml:"w:id,attr"`
+}
+
+func (b *BookmarkEnd) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	// log.Println("BookmarkEnd", start.Attr)
+	for _, attr := range start.Attr {
+		if attr.Name.Local == "id" {
+			b.ID = attr.Value
+		}
+	}
+
+	for {
+		t, err := d.Token()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return err
+		}
+
+		if _, ok := t.(xml.EndElement); ok {
+			break
 		}
 	}
 	return nil

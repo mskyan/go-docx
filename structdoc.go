@@ -23,6 +23,7 @@ package docx
 import (
 	"encoding/xml"
 	"io"
+	"log"
 	"reflect"
 	"regexp"
 	"strings"
@@ -85,6 +86,14 @@ func (b *Body) UnmarshalXML(d *xml.Decoder, _ xml.StartElement) error {
 			case "tbl":
 				var value Table
 				value.file = b.file
+				err = d.DecodeElement(&value, &tt)
+				if err != nil && !strings.HasPrefix(err.Error(), "expected") {
+					return err
+				}
+				b.Items = append(b.Items, &value)
+			case "sdt":
+				log.Println("sdt")
+				var value StructuredDocumentTag
 				err = d.DecodeElement(&value, &tt)
 				if err != nil && !strings.HasPrefix(err.Error(), "expected") {
 					return err
@@ -313,10 +322,17 @@ func (p *Paragraph) copymedia(to *Docx) (np Paragraph) {
 				continue
 			}
 			rid := to.addLinkRelation(tgt)
+
+			copiedRuns := make([]*Run, 0, len(*h.Runs))
+			for _, r := range *h.Runs {
+				copiedRuns = append(copiedRuns, r.copymedia(to))
+			}
+
 			np.Children = append(np.Children, &Hyperlink{
-				ID:  rid,
-				Run: *h.Run.copymedia(to),
-			})
+				ID:   rid,
+				Runs: &copiedRuns,
+			},
+			)
 			continue
 		}
 		np.Children = append(np.Children, pc)

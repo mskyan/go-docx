@@ -387,6 +387,16 @@ type KeepNext struct {
 	Val     int      `xml:"w:val,attr,omitempty"`
 }
 
+type KeepLines struct {
+	XMLName xml.Name `xml:"w:keepLines,omitempty"`
+	Val     int      `xml:"w:val,attr,omitempty"`
+}
+
+type WidowControl struct {
+	XMLName xml.Name `xml:"w:widowControl,omitempty"`
+	Val     int      `xml:"w:val,attr,omitempty"`
+}
+
 func (n *NumPr) UnmarshalXML(d *xml.Decoder, start xml.StartElement) (err error) {
 	for _, attr := range start.Attr {
 		switch attr.Name.Local {
@@ -476,6 +486,42 @@ func (k *KeepNext) UnmarshalXML(d *xml.Decoder, start xml.StartElement) (err err
 		switch attr.Name.Local {
 		case "val":
 			k.Val, err = GetInt(attr.Value)
+			if err != nil {
+				return
+			}
+		default:
+			// ignore other attributes
+		}
+	}
+
+	// Consume the end element
+	_, err = d.Token()
+	return
+}
+
+func (k *KeepLines) UnmarshalXML(d *xml.Decoder, start xml.StartElement) (err error) {
+	for _, attr := range start.Attr {
+		switch attr.Name.Local {
+		case "val":
+			k.Val, err = GetInt(attr.Value)
+			if err != nil {
+				return
+			}
+		default:
+			// ignore other attributes
+		}
+	}
+
+	// Consume the end element
+	_, err = d.Token()
+	return
+}
+
+func (w *WidowControl) UnmarshalXML(d *xml.Decoder, start xml.StartElement) (err error) {
+	for _, attr := range start.Attr {
+		switch attr.Name.Local {
+		case "val":
+			w.Val, err = GetInt(attr.Value)
 			if err != nil {
 				return
 			}

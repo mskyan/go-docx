@@ -320,7 +320,7 @@ func (n *Num) UnmarshalXML(d *xml.Decoder, start xml.StartElement) (err error) {
 				if err != nil {
 					return err
 				}
-				log.Println("an: ", an)
+				// log.Println("an: ", an)
 				n.AbstractNumID = an
 			default:
 				// ignore other attributes

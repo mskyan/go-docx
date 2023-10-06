@@ -39,6 +39,8 @@ type Run struct {
 
 	InstrText string `xml:"w:instrText,omitempty"`
 
+	Text *Text `xml:"w:t,omitempty"`
+
 	Children []interface{}
 
 	file *Docx

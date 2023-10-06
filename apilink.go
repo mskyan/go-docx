@@ -28,9 +28,8 @@ const (
 // AddLink adds an hyperlink to paragraph
 func (p *Paragraph) AddLink(text string, link string) *Hyperlink {
 	rid := p.file.addLinkRelation(link)
-	hyperlink := &Hyperlink{
-		ID: rid,
-		Run: Run{
+	runs := &[]*Run{
+		{
 			RunProperties: &RunProperties{
 				RunStyle: &RunStyle{
 					Val: HYPERLINK_STYLE,
@@ -38,6 +37,10 @@ func (p *Paragraph) AddLink(text string, link string) *Hyperlink {
 			},
 			InstrText: text,
 		},
+	}
+	hyperlink := &Hyperlink{
+		ID:   rid,
+		Runs: runs,
 	}
 
 	p.Children = append(p.Children, hyperlink)
