@@ -32,6 +32,7 @@ import (
 //nolint:revive,stylecheck
 const (
 	XMLNS_W   = `http://schemas.openxmlformats.org/wordprocessingml/2006/main`
+	XMLNS_W14 = `http://schemas.microsoft.com/office/word/2010/wordml`
 	XMLNS_R   = `http://schemas.openxmlformats.org/officeDocument/2006/relationships`
 	XMLNS_WP  = `http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing`
 	XMLNS_WPS = `http://schemas.microsoft.com/office/word/2010/wordprocessingShape`
@@ -159,6 +160,7 @@ func (b *Body) DropDrawingOf(name string) {
 type Document struct {
 	XMLName xml.Name `xml:"w:document"`
 	XMLW    string   `xml:"xmlns:w,attr"`             // cannot be unmarshalled in
+	XMLW14  string   `xml:"xmlns:w14,attr,omitempty"` // cannot be unmarshalled in
 	XMLR    string   `xml:"xmlns:r,attr,omitempty"`   // cannot be unmarshalled in
 	XMLWP   string   `xml:"xmlns:wp,attr,omitempty"`  // cannot be unmarshalled in
 	XMLWPS  string   `xml:"xmlns:wps,attr,omitempty"` // cannot be unmarshalled in

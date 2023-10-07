@@ -122,7 +122,12 @@ func (r *Text) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 		}
 
 		if tt, ok := t.(xml.CharData); ok {
-			r.Text = string(tt) // implicitly copy
+			strtt := string(tt)
+
+			// " " replaced to &nbsp;
+			strtt = strings.ReplaceAll(strtt, " ", "\u00A0")
+
+			r.Text = strtt
 		}
 	}
 

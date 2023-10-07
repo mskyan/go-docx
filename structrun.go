@@ -227,6 +227,9 @@ type RunProperties struct {
 	Underline *Underline
 	VertAlign *VertAlign
 	Strike    *Strike
+	NoProof   *NoProof
+	WebHidden *WebHidden
+	Lang      *Lang
 }
 
 // UnmarshalXML ...
@@ -316,6 +319,27 @@ func (r *RunProperties) UnmarshalXML(d *xml.Decoder, _ xml.StartElement) error {
 				var value Strike
 				value.Val = getAtt(tt.Attr, "val")
 				r.Strike = &value
+			case "noProof":
+				var value NoProof
+				value.Val = getAtt(tt.Attr, "val")
+				// if value.Val == "" {
+				// continue
+				// }
+				r.NoProof = &value
+			case "webHidden":
+				var value WebHidden
+				value.Val = getAtt(tt.Attr, "val")
+				// if value.Val == "" {
+				// continue
+				// }
+				r.WebHidden = &value
+			case "lang":
+				var value Lang
+				value.Val = getAtt(tt.Attr, "val")
+				// if value.Val == "" {
+				// continue
+				// }
+				r.Lang = &value
 			default:
 				err = d.Skip() // skip unsupported tags
 				if err != nil {
@@ -331,11 +355,15 @@ func (r *RunProperties) UnmarshalXML(d *xml.Decoder, _ xml.StartElement) error {
 
 // RunFonts specifies the fonts used in the text of a run.
 type RunFonts struct {
-	XMLName  xml.Name `xml:"w:rFonts,omitempty"`
-	ASCII    string   `xml:"w:ascii,attr,omitempty"`
-	EastAsia string   `xml:"w:eastAsia,attr,omitempty"`
-	HAnsi    string   `xml:"w:hAnsi,attr,omitempty"`
-	Hint     string   `xml:"w:hint,attr,omitempty"`
+	XMLName       xml.Name `xml:"w:rFonts,omitempty"`
+	ASCII         string   `xml:"w:ascii,attr,omitempty"`
+	EastAsia      string   `xml:"w:eastAsia,attr,omitempty"`
+	HAnsi         string   `xml:"w:hAnsi,attr,omitempty"`
+	Hint          string   `xml:"w:hint,attr,omitempty"`
+	AsciiTheme    string   `xml:"w:asciiTheme,attr,omitempty"`
+	EastAsiaTheme string   `xml:"w:eastAsiaTheme,attr,omitempty"`
+	HAnsiTheme    string   `xml:"w:hAnsiTheme,attr,omitempty"`
+	CSTheme       string   `xml:"w:cstheme,attr,omitempty"`
 }
 
 // UnmarshalXML ...
@@ -350,6 +378,14 @@ func (f *RunFonts) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 			f.HAnsi = attr.Value
 		case "hint":
 			f.Hint = attr.Value
+		case "asciiTheme":
+			f.AsciiTheme = attr.Value
+		case "eastAsiaTheme":
+			f.EastAsiaTheme = attr.Value
+		case "hAnsiTheme":
+			f.HAnsiTheme = attr.Value
+		case "cstheme":
+			f.CSTheme = attr.Value
 		}
 	}
 	// Consume the end element
@@ -374,4 +410,22 @@ func (f *FldChar) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	// Consume the end element
 	_, err := d.Token()
 	return err
+}
+
+type NoProof struct {
+	XMLName xml.Name `xml:"w:noProof,omitempty"`
+
+	Val string `xml:"w:val,attr,omitempty"`
+}
+
+type WebHidden struct {
+	XMLName xml.Name `xml:"w:webHidden,omitempty"`
+
+	Val string `xml:"w:val,attr,omitempty"`
+}
+
+type Lang struct {
+	XMLName xml.Name `xml:"w:lang,omitempty"`
+
+	Val string `xml:"w:val,attr,omitempty"`
 }

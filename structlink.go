@@ -29,13 +29,26 @@ import (
 // Hyperlink element contains links
 type Hyperlink struct {
 	XMLName xml.Name `xml:"w:hyperlink,omitempty"`
-	ID      string   `xml:"r:id,attr"`
-	Anchor  string   `xml:"w:anchor,attr,omitempty"` // anchor is used for internal links
+	ID      string   `xml:"r:id,attr,omitempty"`
+	Anchor  string   `xml:"w:anchor,attr,omitempty"`
+	History string   `xml:"w:history,attr,omitempty"`
 	Runs    *[]*Run  `xml:"w:r,omitempty"`
 }
 
 // UnmarshalXML ...
-func (r *Hyperlink) UnmarshalXML(d *xml.Decoder, _ xml.StartElement) error {
+func (r *Hyperlink) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	// attributes
+	for _, attr := range start.Attr {
+		switch attr.Name.Local {
+		case "id":
+			r.ID = attr.Value
+		case "anchor":
+			r.Anchor = attr.Value
+		case "history":
+			r.History = attr.Value
+		}
+	}
+
 	for {
 		t, err := d.Token()
 		if err == io.EOF {
@@ -72,7 +85,6 @@ type BookmarkStart struct {
 	XMLName xml.Name `xml:"w:bookmarkStart,omitempty"`
 	ID      string   `xml:"w:id,attr"`
 	Name    string   `xml:"w:name,attr,omitempty"`
-	Run     Run      `xml:"w:r,omitempty"`
 }
 
 func (b *BookmarkStart) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
@@ -95,20 +107,11 @@ func (b *BookmarkStart) UnmarshalXML(d *xml.Decoder, start xml.StartElement) err
 			return err
 		}
 
-		if tt, ok := t.(xml.StartElement); ok {
-			if tt.Name.Local == "r" {
-				err = d.DecodeElement(&b.Run, &tt)
-				if err != nil && !strings.HasPrefix(err.Error(), "expected") {
-					return err
-				}
-				continue
-			}
-			err = d.Skip() // skip unsupported tags
-			if err != nil {
-				return err
-			}
+		if _, ok := t.(xml.EndElement); ok {
+			break
 		}
 	}
+
 	return nil
 }
 

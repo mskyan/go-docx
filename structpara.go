@@ -223,10 +223,12 @@ func (p *ParagraphProperties) UnmarshalXML(d *xml.Decoder, _ xml.StartElement) e
 type Paragraph struct {
 	XMLName xml.Name `xml:"w:p,omitempty"`
 
-	// RsidR        string `xml:"w:rsidR,attr,omitempty"`
+	ParaId string `xml:"w14:paraId,attr,omitempty"`
+	RsidR  string `xml:"w:rsidR,attr,omitempty"`
 	// RsidRPr      string `xml:"w:rsidRPr,attr,omitempty"`
-	// RsidRDefault string `xml:"w:rsidRDefault,attr,omitempty"`
-	// RsidP        string `xml:"w:rsidP,attr,omitempty"`
+	RsidRDefault string `xml:"w:rsidRDefault,attr,omitempty"`
+	RsidP        string `xml:"w:rsidP,attr,omitempty"`
+	TextId       string `xml:"w14:textId,attr,omitempty"`
 
 	Hyperlink     *[]*Hyperlink     `xml:"w:hyperlink,omitempty"`     // 0 or more
 	BookmarkStart *[]*BookmarkStart `xml:"w:bookmarkStart,omitempty"` // 0 or more
@@ -606,21 +608,25 @@ var irohaFullWidthMap = map[int]string{
 }
 
 // UnmarshalXML ...
-func (p *Paragraph) UnmarshalXML(d *xml.Decoder, _ xml.StartElement) error {
-	/*for _, attr := range start.Attr {
+func (p *Paragraph) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	for _, attr := range start.Attr {
 		switch attr.Name.Local {
+		case "paraId":
+			p.ParaId = attr.Value
 		case "rsidR":
 			p.RsidR = attr.Value
-		case "rsidRPr":
-			p.RsidRPr = attr.Value
+		// case "rsidRPr":
+		// p.RsidRPr = attr.Value
 		case "rsidRDefault":
 			p.RsidRDefault = attr.Value
 		case "rsidP":
 			p.RsidP = attr.Value
+		case "textId":
+			p.TextId = attr.Value
 		default:
 			// ignore other attributes
 		}
-	}*/
+	}
 	children := make([]interface{}, 0, 64)
 	for {
 		t, err := d.Token()
@@ -642,19 +648,11 @@ func (p *Paragraph) UnmarshalXML(d *xml.Decoder, _ xml.StartElement) error {
 					return err
 				}
 				if p.Hyperlink == nil {
-					p.Hyperlink = &[]*Hyperlink{}
+					p.Hyperlink = &[]*Hyperlink{&value}
+				} else {
+					*p.Hyperlink = append(*p.Hyperlink, &value)
 				}
-				// id := getAtt(tt.Attr, "id")
-				// anchor := getAtt(tt.Attr, "anchor")
-				// if id != "" {
-				// 	value.ID = id
-				// }
-				// if anchor != "" {
-				// 	value.ID = anchor
-				// }
-				*p.Hyperlink = append(*p.Hyperlink, &value)
-				// log.Println("hyperlink:", value)
-				elem = &value
+				// elem = &value
 			case "bookmarkStart":
 				var value BookmarkStart
 				err = d.DecodeElement(&value, &tt)
@@ -663,10 +661,11 @@ func (p *Paragraph) UnmarshalXML(d *xml.Decoder, _ xml.StartElement) error {
 				}
 
 				if p.BookmarkStart == nil {
-					p.BookmarkStart = &[]*BookmarkStart{}
+					p.BookmarkStart = &[]*BookmarkStart{&value}
+				} else {
+					*p.BookmarkStart = append(*p.BookmarkStart, &value)
 				}
-				*p.BookmarkStart = append(*p.BookmarkStart, &value)
-				elem = &value
+				// elem = &value
 			case "bookmarkEnd":
 				var value BookmarkEnd
 				err = d.DecodeElement(&value, &tt)
@@ -675,10 +674,11 @@ func (p *Paragraph) UnmarshalXML(d *xml.Decoder, _ xml.StartElement) error {
 				}
 
 				if p.BookmarkEnd == nil {
-					p.BookmarkEnd = &[]*BookmarkEnd{}
+					p.BookmarkEnd = &[]*BookmarkEnd{&value}
+				} else {
+					*p.BookmarkEnd = append(*p.BookmarkEnd, &value)
 				}
-				*p.BookmarkEnd = append(*p.BookmarkEnd, &value)
-				elem = &value
+				// elem = &value
 			case "r":
 				var value Run
 				value.file = p.file

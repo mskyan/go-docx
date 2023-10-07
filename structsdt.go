@@ -114,7 +114,7 @@ func (sdt *StructuredDocumentTag) UnmarshalXML(d *xml.Decoder, start xml.StartEl
 	for {
 		t, err := d.Token()
 		if err == io.EOF {
-			log.Println("sdt EOF")
+			// log.Println("sdt EOF")
 			break
 		}
 		if err != nil {
@@ -197,7 +197,7 @@ func (sdtp *StructuredDocumentTagProperties) UnmarshalXML(d *xml.Decoder, start 
 				if err != nil {
 					return err
 				}
-				log.Println("id", sdtp.ID.Val)
+				// log.Println("id", sdtp.ID.Val)
 			default:
 				err = d.Skip()
 				if err != nil {
