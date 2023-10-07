@@ -94,6 +94,7 @@ func (t *Tab) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 // BarterRabbet is <br>
 type BarterRabbet struct {
 	XMLName xml.Name `xml:"w:br,omitempty"`
+	Type   string   `xml:"w:type,attr,omitempty"`
 }
 
 // Text object contains the actual text
