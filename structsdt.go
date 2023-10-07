@@ -27,46 +27,46 @@ import (
 )
 
 type StructuredDocumentTag struct {
-	XMLName xml.Name `xml:"sdt"`
+	XMLName xml.Name `xml:"w:sdt"`
 
-	SdtPr      *StructuredDocumentTagProperties    `xml:"sdtPr,omitempty"`
-	SdtEndPr   *StructuredDocumentTagEndProperties `xml:"sdtEndPr,omitempty"`
-	SdtContent *StructuredDocumentTagContent       `xml:"sdtContent,omitempty"`
+	SdtPr      *StructuredDocumentTagProperties    `xml:"w:sdtPr,omitempty"`
+	SdtEndPr   *StructuredDocumentTagEndProperties `xml:"w:sdtEndPr,omitempty"`
+	SdtContent *StructuredDocumentTagContent       `xml:"w:sdtContent,omitempty"`
 }
 
 type StructuredDocumentTagProperties struct {
-	XMLName xml.Name `xml:"sdtPr"`
+	XMLName xml.Name `xml:"w:sdtPr"`
 
 	Rpr        *RunProperties      `xml:"w:rPr,omitempty"`
-	DocPartObj *DocumentPartObject `xml:"docPartObj,omitempty"`
-	ID         *TagID              `xml:"id,omitempty"`
+	DocPartObj *DocumentPartObject `xml:"w:docPartObj,omitempty"`
+	ID         *TagID              `xml:"w:id,omitempty"`
 }
 
 type TagID struct {
-	XMLName xml.Name `xml:"id"`
+	XMLName xml.Name `xml:"w:id"`
 
 	Val string `xml:"w:val,attr,omitempty"`
 }
 
 type DocumentPartObject struct {
-	XMLName xml.Name `xml:"docPartObj"`
+	XMLName xml.Name `xml:"w:docPartObj"`
 
-	DocumentPartGallery *DocumentPartGallery `xml:"docPartGallery,omitempty"`
-	DocumentPartUnique  *DocumentPartUnique  `xml:"docPartUnique,omitempty"`
+	DocumentPartGallery *DocumentPartGallery `xml:"w:docPartGallery,omitempty"`
+	DocumentPartUnique  *DocumentPartUnique  `xml:"w:docPartUnique,omitempty"`
 }
 type DocumentPartGallery struct {
-	XMLName xml.Name `xml:"docPartGallery"`
+	XMLName xml.Name `xml:"w:docPartGallery"`
 
 	Val string `xml:"w:val,attr,omitempty"`
 }
 type DocumentPartUnique struct {
-	XMLName xml.Name `xml:"docPartUnique"`
+	XMLName xml.Name `xml:"w:docPartUnique"`
 
 	Val string `xml:"w:val,attr,omitempty"`
 }
 
 type StructuredDocumentTagEndProperties struct {
-	XMLName xml.Name       `xml:"sdtEndPr"`
+	XMLName xml.Name       `xml:"w:sdtEndPr"`
 	Rpr     *RunProperties `xml:"w:rPr,omitempty"`
 }
 
@@ -102,11 +102,11 @@ func (s *StructuredDocumentTagEndProperties) UnmarshalXML(d *xml.Decoder, _ xml.
 }
 
 type StructuredDocumentTagContent struct {
-	XMLName xml.Name `xml:"sdtContent"`
+	XMLName xml.Name `xml:"w:sdtContent"`
 
-	Paragraphs *[]*Paragraph `xml:"p,omitempty"`
+	Paragraphs *[]*Paragraph `xml:"w:p,omitempty"`
 
-	Tables *[]*Table `xml:"tbl,omitempty"`
+	Tables *[]*Table `xml:"w:tbl,omitempty"`
 }
 
 // UnmarshalXML unmarshals
