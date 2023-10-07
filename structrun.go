@@ -43,6 +43,9 @@ type Run struct {
 
 	FldChar *FldChar `xml:"w:fldChar,omitempty"`
 
+	RsidR   string `xml:"w:rsidR,attr,omitempty"`
+	RsidRPr string `xml:"w:rsidRPr,attr,omitempty"`
+
 	Children []interface{}
 
 	file *Docx
@@ -54,10 +57,10 @@ func (r *Run) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 		switch attr.Name.Local {
 		case "space":
 			r.Space = attr.Value
-		/*case "rsidR":
+		case "rsidR":
 			r.RsidR = attr.Value
 		case "rsidRPr":
-			r.RsidRPr = attr.Value*/
+			r.RsidRPr = attr.Value
 		default:
 			// ignore other attributes
 		}
