@@ -49,6 +49,7 @@ type ParagraphProperties struct {
 	KeepNext       *KeepNext
 	KeepLines      *KeepLines
 	WidowControl   *WidowControl
+	SectPr         *SectPr
 
 	RunProperties *RunProperties
 }
@@ -172,7 +173,7 @@ func (p *ParagraphProperties) UnmarshalXML(d *xml.Decoder, _ xml.StartElement) e
 				var value KeepNext
 				v := getAtt(tt.Attr, "val")
 				if v == "" {
-					continue
+					v = "0"
 				}
 				value.Val, err = GetInt(v)
 				if err != nil {
@@ -186,7 +187,7 @@ func (p *ParagraphProperties) UnmarshalXML(d *xml.Decoder, _ xml.StartElement) e
 				var value KeepLines
 				v := getAtt(tt.Attr, "val")
 				if v == "" {
-					continue
+					v = "0"
 				}
 				value.Val, err = GetInt(v)
 				if err != nil {
@@ -197,13 +198,20 @@ func (p *ParagraphProperties) UnmarshalXML(d *xml.Decoder, _ xml.StartElement) e
 				var value WidowControl
 				v := getAtt(tt.Attr, "val")
 				if v == "" {
-					continue
+					v = "0"
 				}
 				value.Val, err = GetInt(v)
 				if err != nil {
 					return err
 				}
 				p.WidowControl = &value
+			case "sectPr":
+				var value SectPr
+				err = d.DecodeElement(&value, &tt)
+				if err != nil && !strings.HasPrefix(err.Error(), "expected") {
+					return err
+				}
+				p.SectPr = &value
 			default:
 				// 取り損ねた値を log に表示
 				log.Println("UnmarshalXML ParagraphProperties unsupported, skip:", tt.Name.Local)
@@ -223,9 +231,9 @@ func (p *ParagraphProperties) UnmarshalXML(d *xml.Decoder, _ xml.StartElement) e
 type Paragraph struct {
 	XMLName xml.Name `xml:"w:p,omitempty"`
 
-	ParaId string `xml:"w14:paraId,attr,omitempty"`
-	RsidR  string `xml:"w:rsidR,attr,omitempty"`
-	// RsidRPr      string `xml:"w:rsidRPr,attr,omitempty"`
+	ParaId       string `xml:"w14:paraId,attr,omitempty"`
+	RsidR        string `xml:"w:rsidR,attr,omitempty"`
+	RsidRPr      string `xml:"w:rsidRPr,attr,omitempty"`
 	RsidRDefault string `xml:"w:rsidRDefault,attr,omitempty"`
 	RsidP        string `xml:"w:rsidP,attr,omitempty"`
 	TextId       string `xml:"w14:textId,attr,omitempty"`
@@ -615,8 +623,8 @@ func (p *Paragraph) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 			p.ParaId = attr.Value
 		case "rsidR":
 			p.RsidR = attr.Value
-		// case "rsidRPr":
-		// p.RsidRPr = attr.Value
+		case "rsidRPr":
+			p.RsidRPr = attr.Value
 		case "rsidRDefault":
 			p.RsidRDefault = attr.Value
 		case "rsidP":
@@ -647,12 +655,12 @@ func (p *Paragraph) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 				if err != nil && !strings.HasPrefix(err.Error(), "expected") {
 					return err
 				}
-				if p.Hyperlink == nil {
-					p.Hyperlink = &[]*Hyperlink{&value}
-				} else {
-					*p.Hyperlink = append(*p.Hyperlink, &value)
-				}
-				// elem = &value
+				// if p.Hyperlink == nil {
+				// 	p.Hyperlink = &[]*Hyperlink{&value}
+				// } else {
+				// 	*p.Hyperlink = append(*p.Hyperlink, &value)
+				// }
+				elem = &value
 			case "bookmarkStart":
 				var value BookmarkStart
 				err = d.DecodeElement(&value, &tt)
@@ -660,12 +668,12 @@ func (p *Paragraph) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 					return err
 				}
 
-				if p.BookmarkStart == nil {
-					p.BookmarkStart = &[]*BookmarkStart{&value}
-				} else {
-					*p.BookmarkStart = append(*p.BookmarkStart, &value)
-				}
-				// elem = &value
+				// if p.BookmarkStart == nil {
+				// 	p.BookmarkStart = &[]*BookmarkStart{&value}
+				// } else {
+				// 	*p.BookmarkStart = append(*p.BookmarkStart, &value)
+				// }
+				elem = &value
 			case "bookmarkEnd":
 				var value BookmarkEnd
 				err = d.DecodeElement(&value, &tt)
@@ -673,12 +681,12 @@ func (p *Paragraph) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 					return err
 				}
 
-				if p.BookmarkEnd == nil {
-					p.BookmarkEnd = &[]*BookmarkEnd{&value}
-				} else {
-					*p.BookmarkEnd = append(*p.BookmarkEnd, &value)
-				}
-				// elem = &value
+				// if p.BookmarkEnd == nil {
+				// 	p.BookmarkEnd = &[]*BookmarkEnd{&value}
+				// } else {
+				// 	*p.BookmarkEnd = append(*p.BookmarkEnd, &value)
+				// }
+				elem = &value
 			case "r":
 				var value Run
 				value.file = p.file
@@ -700,11 +708,10 @@ func (p *Paragraph) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 				if err != nil && !strings.HasPrefix(err.Error(), "expected") {
 					return err
 				}
-				p.Properties = &value
+				// p.Properties = &value
 
 				// 重複するのでひとまず省く
-				// elem = &value
-				// continue
+				elem = &value
 			default:
 				err = d.Skip() // skip unsupported tags
 				if err != nil {

@@ -461,61 +461,65 @@ func (n *NumID) UnmarshalXML(d *xml.Decoder, start xml.StartElement) (err error)
 }
 
 // UnmarshalXML Ilvl
-func (i *Ilvl) UnmarshalXML(d *xml.Decoder, start xml.StartElement) (err error) {
-	for _, attr := range start.Attr {
-		switch attr.Name.Local {
-		case "val":
-			i.Val, err = GetInt(attr.Value)
-			if err != nil {
-				return
-			}
-		default:
-			// ignore other attributes
-		}
-	}
+// func (i *Ilvl) UnmarshalXML(d *xml.Decoder, start xml.StartElement) (err error) {
+// 	for _, attr := range start.Attr {
+// 		switch attr.Name.Local {
+// 		case "val":
+// 			if attr.Value == "" {
+// 				i.Val = 0
+// 			} else {
+// 				i.Val, err = GetInt(attr.Value)
+// 				if err != nil {
+// 					return
+// 				}
+// 			}
+// 		default:
+// 			// ignore other attributes
+// 		}
+// 	}
 
-	// Consume the end element
-	_, err = d.Token()
-	return
-}
+// 	// Consume the end element
+// 	_, err = d.Token()
+// 	return
+// }
 
-// 0: false, 1: true
-// 段落が次の段落と同じページに表示されるようにするかどうかを指定します。
-func (k *KeepNext) UnmarshalXML(d *xml.Decoder, start xml.StartElement) (err error) {
-	for _, attr := range start.Attr {
-		switch attr.Name.Local {
-		case "val":
-			k.Val, err = GetInt(attr.Value)
-			if err != nil {
-				return
-			}
-		default:
-			// ignore other attributes
-		}
-	}
+// // 0: false, 1: true
+// // 段落が次の段落と同じページに表示されるようにするかどうかを指定します。
+// func (k *KeepNext) UnmarshalXML(d *xml.Decoder, start xml.StartElement) (err error) {
+// 	for _, attr := range start.Attr {
+// 		switch attr.Name.Local {
+// 		case "val":
+// 			k.Val, err = GetInt(attr.Value)
+// 			if err != nil {
+// 				return
+// 			}
+// 		default:
+// 			// ignore other attributes
+// 		}
+// 	}
 
-	// Consume the end element
-	_, err = d.Token()
-	return
-}
+// 	// Consume the end element
+// 	_, err = d.Token()
+// 	return
+// }
 
-func (k *KeepLines) UnmarshalXML(d *xml.Decoder, start xml.StartElement) (err error) {
-	for _, attr := range start.Attr {
-		switch attr.Name.Local {
-		case "val":
-			k.Val, err = GetInt(attr.Value)
-			if err != nil {
-				return
-			}
-		default:
-			// ignore other attributes
-		}
-	}
+// func (k *KeepLines) UnmarshalXML(d *xml.Decoder, start xml.StartElement) (err error) {
+// 	for _, attr := range start.Attr {
+// 		switch attr.Name.Local {
+// 		case "val":
+// 			k.Val, err = GetInt(attr.Value)
+// 			if err != nil {
+// 				return
+// 			}
+// 		default:
+// 			// ignore other attributes
+// 		}
+// 	}
 
-	// Consume the end element
-	_, err = d.Token()
-	return
-}
+// 	// Consume the end element
+// 	_, err = d.Token()
+// 	return
+// }
 
 func (w *WidowControl) UnmarshalXML(d *xml.Decoder, start xml.StartElement) (err error) {
 	for _, attr := range start.Attr {
