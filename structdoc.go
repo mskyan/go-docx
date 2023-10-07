@@ -45,6 +45,8 @@ const (
 	XMLNS_V = `urn:schemas-microsoft-com:vml`
 
 	XMLNS_PICTURE = `http://schemas.openxmlformats.org/drawingml/2006/picture`
+
+	XMLVAL_MCIGNORABLE = `w14 w15 w16se w16cid w16 w16cex w16sdtdh wp14`
 )
 
 func getAtt(atts []xml.Attr, name string) string {
@@ -166,13 +168,13 @@ type Document struct {
 	XMLWPS  string   `xml:"xmlns:wps,attr,omitempty"` // cannot be unmarshalled in
 	XMLWPC  string   `xml:"xmlns:wpc,attr,omitempty"` // cannot be unmarshalled in
 	XMLWPG  string   `xml:"xmlns:wpg,attr,omitempty"` // cannot be unmarshalled in
-	// XMLMC   string   `xml:"xmlns:mc,attr,omitempty"`  // cannot be unmarshalled in
+	XMLMC   string   `xml:"xmlns:mc,attr,omitempty"`  // cannot be unmarshalled in
 	// XMLWP14 string   `xml:"xmlns:wp14,attr,omitempty"` // cannot be unmarshalled in
 
 	// XMLO string `xml:"xmlns:o,attr,omitempty"` // cannot be unmarshalled in
 	// XMLV string `xml:"xmlns:v,attr,omitempty"` // cannot be unmarshalled in
 
-	// MCIgnorable string `xml:"mc:Ignorable,attr,omitempty"`
+	MCIgnorable string `xml:"mc:Ignorable,attr,omitempty"`
 
 	Body Body `xml:"w:body"`
 }
@@ -235,7 +237,7 @@ newdoclop:
 		ndoc.Document.XMLW = XMLNS_W
 		ndoc.Document.XMLR = XMLNS_R
 		ndoc.Document.XMLWP = XMLNS_WP
-		// ndoc.Document.XMLMC = XMLNS_MC
+		ndoc.Document.XMLMC = XMLNS_MC
 		// ndoc.Document.XMLO = XMLNS_O
 		// ndoc.Document.XMLV = XMLNS_V
 		ndoc.Document.XMLWPS = XMLNS_WPS

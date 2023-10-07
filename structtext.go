@@ -63,6 +63,7 @@ func (tb *Tabs) UnmarshalXML(d *xml.Decoder, _ xml.StartElement) error {
 type Tab struct {
 	XMLName  xml.Name `xml:"w:tab,omitempty"`
 	Val      string   `xml:"w:val,attr,omitempty"`
+	Leader   string   `xml:"w:leader,attr,omitempty"`
 	Position int      `xml:"w:pos,attr,omitempty"`
 }
 
@@ -73,6 +74,8 @@ func (t *Tab) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 		switch attr.Name.Local {
 		case "val":
 			t.Val = attr.Value
+		case "leader":
+			t.Leader = attr.Value
 		case "pos":
 			if attr.Value == "" {
 				continue
@@ -122,12 +125,12 @@ func (r *Text) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 		}
 
 		if tt, ok := t.(xml.CharData); ok {
-			strtt := string(tt)
+			r.Text = string(tt)
 
-			// " " replaced to &nbsp;
-			strtt = strings.ReplaceAll(strtt, " ", "\u00A0")
-
-			r.Text = strtt
+			// strtt := string(tt)
+			// // " " replaced to &nbsp;
+			// strtt = strings.ReplaceAll(strtt, " ", "\u00A0")
+			// r.Text = strtt
 		}
 	}
 
