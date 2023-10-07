@@ -702,9 +702,8 @@ func (p *Paragraph) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 				}
 				p.Properties = &value
 
-				// これも、Children に含めてみる。
-				// 構造上、正しい。
-				elem = &value
+				// 重複するのでひとまず省く
+				// elem = &value
 				// continue
 			default:
 				err = d.Skip() // skip unsupported tags

@@ -29,9 +29,9 @@ import (
 type StructuredDocumentTag struct {
 	XMLName xml.Name `xml:"sdt"`
 
-	SdtPr      *StructuredDocumentTagProperties `xml:"sdtPr,omitempty"`
-	SdtEnd     *StructuredDocumentTagEnd        `xml:"sdtEnd,omitempty"`
-	SdtContent *StructuredDocumentTagContent    `xml:"sdtContent,omitempty"`
+	SdtPr      *StructuredDocumentTagProperties    `xml:"sdtPr,omitempty"`
+	SdtEndPr   *StructuredDocumentTagEndProperties `xml:"sdtEndPr,omitempty"`
+	SdtContent *StructuredDocumentTagContent       `xml:"sdtContent,omitempty"`
 }
 
 type StructuredDocumentTagProperties struct {
@@ -65,12 +65,12 @@ type DocumentPartUnique struct {
 	Val string `xml:"w:val,attr,omitempty"`
 }
 
-type StructuredDocumentTagEnd struct {
-	XMLName xml.Name       `xml:"sdtEnd"`
+type StructuredDocumentTagEndProperties struct {
+	XMLName xml.Name       `xml:"sdtEndPr"`
 	Rpr     *RunProperties `xml:"w:rPr,omitempty"`
 }
 
-func (sdte *StructuredDocumentTagEnd) UnmarshalXML(d *xml.Decoder, _ xml.StartElement) error {
+func (s *StructuredDocumentTagEndProperties) UnmarshalXML(d *xml.Decoder, _ xml.StartElement) error {
 	for {
 		t, err := d.Token()
 		if err == io.EOF {
@@ -84,8 +84,8 @@ func (sdte *StructuredDocumentTagEnd) UnmarshalXML(d *xml.Decoder, _ xml.StartEl
 		if tt, ok := t.(xml.StartElement); ok {
 			switch tt.Name.Local {
 			case "rPr":
-				sdte.Rpr = &RunProperties{}
-				err = d.DecodeElement(sdte.Rpr, &tt)
+				s.Rpr = &RunProperties{}
+				err = d.DecodeElement(s.Rpr, &tt)
 				if err != nil {
 					return err
 				}
@@ -136,9 +136,9 @@ func (sdt *StructuredDocumentTag) UnmarshalXML(d *xml.Decoder, start xml.StartEl
 				if err != nil {
 					return err
 				}
-			case "sdtEnd":
-				sdt.SdtEnd = &StructuredDocumentTagEnd{}
-				err = d.DecodeElement(sdt.SdtEnd, &se)
+			case "sdtEndPr":
+				sdt.SdtEndPr = &StructuredDocumentTagEndProperties{}
+				err = d.DecodeElement(sdt.SdtEndPr, &se)
 				if err != nil {
 					return err
 				}
