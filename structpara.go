@@ -32,24 +32,26 @@ import (
 // ParagraphProperties <w:pPr>
 // Properties in this struct are defined in structeffects.go
 type ParagraphProperties struct {
-	XMLName        xml.Name `xml:"w:pPr,omitempty"`
-	Tabs           *Tabs
-	Spacing        *Spacing
-	Ind            *Ind
-	Justification  *Justification
-	Shade          *Shade
-	Kern           *Kern
-	Style          *Style
-	TextAlignment  *TextAlignment
-	AdjustRightInd *AdjustRightInd
-	SnapToGrid     *SnapToGrid
-	Kinsoku        *Kinsoku
-	OverflowPunct  *OverflowPunct
-	NumPr          *NumPr
-	KeepNext       *KeepNext
-	KeepLines      *KeepLines
-	WidowControl   *WidowControl
-	SectPr         *SectPr
+	XMLName         xml.Name `xml:"w:pPr,omitempty"`
+	Tabs            *Tabs
+	Spacing         *Spacing
+	Ind             *Ind
+	Justification   *Justification
+	Shade           *Shade
+	Kern            *Kern
+	Style           *Style
+	TextAlignment   *TextAlignment
+	AdjustRightInd  *AdjustRightInd
+	SnapToGrid      *SnapToGrid
+	Kinsoku         *Kinsoku
+	OverflowPunct   *OverflowPunct
+	NumPr           *NumPr
+	KeepNext        *KeepNext
+	KeepLines       *KeepLines
+	WidowControl    *WidowControl
+	PageBreakBefore *PageBreakBefore
+	SectPr          *SectPr
+	PBDR            *PBDR
 
 	RunProperties *RunProperties
 }
@@ -62,6 +64,7 @@ func (p *ParagraphProperties) UnmarshalXML(d *xml.Decoder, _ xml.StartElement) e
 			break
 		}
 		if err != nil {
+			log.Println("UnmarshalXML ParagraphProperties error:", err)
 			return err
 		}
 		if tt, ok := t.(xml.StartElement); ok {
@@ -175,10 +178,7 @@ func (p *ParagraphProperties) UnmarshalXML(d *xml.Decoder, _ xml.StartElement) e
 				if v == "" {
 					v = "0"
 				}
-				value.Val, err = GetInt(v)
-				if err != nil {
-					return err
-				}
+				value.Val = v
 				p.KeepNext = &value
 			case "keepLines":
 				// ここで、値を取得しておく。
@@ -189,10 +189,7 @@ func (p *ParagraphProperties) UnmarshalXML(d *xml.Decoder, _ xml.StartElement) e
 				if v == "" {
 					v = "0"
 				}
-				value.Val, err = GetInt(v)
-				if err != nil {
-					return err
-				}
+				value.Val = v
 				p.KeepLines = &value
 			case "widowControl":
 				var value WidowControl
@@ -200,10 +197,7 @@ func (p *ParagraphProperties) UnmarshalXML(d *xml.Decoder, _ xml.StartElement) e
 				if v == "" {
 					v = "0"
 				}
-				value.Val, err = GetInt(v)
-				if err != nil {
-					return err
-				}
+				value.Val = v
 				p.WidowControl = &value
 			case "sectPr":
 				var value SectPr
@@ -212,6 +206,21 @@ func (p *ParagraphProperties) UnmarshalXML(d *xml.Decoder, _ xml.StartElement) e
 					return err
 				}
 				p.SectPr = &value
+			case "pageBreakBefore":
+				var value PageBreakBefore
+				v := getAtt(tt.Attr, "val")
+				if v == "" {
+					v = "0"
+				}
+				value.Val = v
+				p.PageBreakBefore = &value
+			case "pBdr":
+				var value PBDR
+				err = d.DecodeElement(&value, &tt)
+				if err != nil && !strings.HasPrefix(err.Error(), "expected") {
+					return err
+				}
+				p.PBDR = &value
 			default:
 				// 取り損ねた値を log に表示
 				log.Println("UnmarshalXML ParagraphProperties unsupported, skip:", tt.Name.Local)
@@ -223,6 +232,11 @@ func (p *ParagraphProperties) UnmarshalXML(d *xml.Decoder, _ xml.StartElement) e
 				continue
 			}
 		}
+
+		// consume end tag
+		// if _, ok := t.(xml.EndElement); ok {
+		// 	break
+		// }
 	}
 	return nil
 }
@@ -241,6 +255,16 @@ type Paragraph struct {
 	Hyperlink     *[]*Hyperlink     `xml:"w:hyperlink,omitempty"`     // 0 or more
 	BookmarkStart *[]*BookmarkStart `xml:"w:bookmarkStart,omitempty"` // 0 or more
 	BookmarkEnd   *[]*BookmarkEnd   `xml:"w:bookmarkEnd,omitempty"`   // 0 or more
+
+	StructuredDocumentTag *[]*StructuredDocumentTag `xml:"w:sdt,omitempty"` // 0 or more
+
+	KeepLines       *KeepLines       `xml:"w:keepLines,omitempty"`
+	WidowControl    *WidowControl    `xml:"w:widowControl,omitempty"`
+	PageBreakBefore *PageBreakBefore `xml:"w:pageBreakBefore,omitempty"`
+	PBDR            *PBDR            `xml:"w:pBdr,omitempty"`
+	Ind             *Ind             `xml:"w:ind,omitempty"`
+	Spacing         *Spacing         `xml:"w:spacing,omitempty"`
+	Shd             *Shade           `xml:"w:shd,omitempty"`
 
 	Properties *ParagraphProperties
 	Children   []interface{}
@@ -648,6 +672,23 @@ func (p *Paragraph) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 			// log.Println("Paragraph UnmarshalXML:", tt.Name.Local)
 			var elem interface{}
 			switch tt.Name.Local {
+			case "pageBreakBefore":
+				var value PageBreakBefore
+				v := getAtt(tt.Attr, "val")
+				if v == "" {
+					v = "0"
+				}
+				p.PageBreakBefore = &value
+				elem = &value
+			case "keepLines":
+				var value KeepLines
+				v := getAtt(tt.Attr, "val")
+				if v == "" {
+					v = "0"
+				}
+				value.Val = v
+				p.KeepLines = &value
+				elem = &value
 			case "hyperlink":
 				// log.Println("hyperlink")
 				var value Hyperlink
@@ -655,11 +696,11 @@ func (p *Paragraph) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 				if err != nil && !strings.HasPrefix(err.Error(), "expected") {
 					return err
 				}
-				// if p.Hyperlink == nil {
-				// 	p.Hyperlink = &[]*Hyperlink{&value}
-				// } else {
-				// 	*p.Hyperlink = append(*p.Hyperlink, &value)
-				// }
+				if p.Hyperlink == nil {
+					p.Hyperlink = &[]*Hyperlink{&value}
+				} else {
+					*p.Hyperlink = append(*p.Hyperlink, &value)
+				}
 				elem = &value
 			case "bookmarkStart":
 				var value BookmarkStart
@@ -668,11 +709,11 @@ func (p *Paragraph) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 					return err
 				}
 
-				// if p.BookmarkStart == nil {
-				// 	p.BookmarkStart = &[]*BookmarkStart{&value}
-				// } else {
-				// 	*p.BookmarkStart = append(*p.BookmarkStart, &value)
-				// }
+				if p.BookmarkStart == nil {
+					p.BookmarkStart = &[]*BookmarkStart{&value}
+				} else {
+					*p.BookmarkStart = append(*p.BookmarkStart, &value)
+				}
 				elem = &value
 			case "bookmarkEnd":
 				var value BookmarkEnd
@@ -681,12 +722,27 @@ func (p *Paragraph) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 					return err
 				}
 
-				// if p.BookmarkEnd == nil {
-				// 	p.BookmarkEnd = &[]*BookmarkEnd{&value}
-				// } else {
-				// 	*p.BookmarkEnd = append(*p.BookmarkEnd, &value)
-				// }
+				if p.BookmarkEnd == nil {
+					p.BookmarkEnd = &[]*BookmarkEnd{&value}
+				} else {
+					*p.BookmarkEnd = append(*p.BookmarkEnd, &value)
+				}
 				elem = &value
+			case "sdt":
+				var value StructuredDocumentTag
+				err = d.DecodeElement(&value, &tt)
+				if err != nil && !strings.HasPrefix(err.Error(), "expected") {
+					return err
+				}
+
+				if p.StructuredDocumentTag == nil {
+					p.StructuredDocumentTag = &[]*StructuredDocumentTag{&value}
+				} else {
+					*p.StructuredDocumentTag = append(*p.StructuredDocumentTag, &value)
+				}
+
+				elem = &value
+				// log.Println("sdt added in paragraph")
 			case "r":
 				var value Run
 				value.file = p.file
@@ -713,6 +769,7 @@ func (p *Paragraph) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 				// 重複するのでひとまず省く
 				elem = &value
 			default:
+				log.Println("UnmarshalXML Paragraph unsupported, skip:", tt.Name.Local)
 				err = d.Skip() // skip unsupported tags
 				if err != nil {
 					return err

@@ -23,6 +23,7 @@ package docx
 import (
 	"encoding/xml"
 	"io"
+	"log"
 	"reflect"
 	"strings"
 )
@@ -345,6 +346,7 @@ func (r *RunProperties) UnmarshalXML(d *xml.Decoder, _ xml.StartElement) error {
 			default:
 				err = d.Skip() // skip unsupported tags
 				if err != nil {
+					log.Println("RunProperties: ", err)
 					return err
 				}
 				continue

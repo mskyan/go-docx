@@ -157,6 +157,11 @@ func (n *Numbering) UnmarshalXML(d *xml.Decoder, _ xml.StartElement) error {
 				// ignore other attributes
 			}
 		}
+
+		// cosume end tag
+		// if _, ok := t.(xml.EndElement); ok {
+		// 	break
+		// }
 	}
 
 	return nil

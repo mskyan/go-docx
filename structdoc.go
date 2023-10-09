@@ -31,22 +31,23 @@ import (
 
 //nolint:revive,stylecheck
 const (
-	XMLNS_W   = `http://schemas.openxmlformats.org/wordprocessingml/2006/main`
-	XMLNS_W14 = `http://schemas.microsoft.com/office/word/2010/wordml`
-	XMLNS_R   = `http://schemas.openxmlformats.org/officeDocument/2006/relationships`
-	XMLNS_WP  = `http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing`
-	XMLNS_WPS = `http://schemas.microsoft.com/office/word/2010/wordprocessingShape`
-	XMLNS_WPC = `http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas`
-	XMLNS_WPG = `http://schemas.microsoft.com/office/word/2010/wordprocessingGroup`
-	XMLNS_MC  = `http://schemas.openxmlformats.org/markup-compatibility/2006`
-	// XMLNS_WP14 = `http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing`
+	XMLNS_W    = `http://schemas.openxmlformats.org/wordprocessingml/2006/main`
+	XMLNS_W10  = `urn:schemas-microsoft-com:office:word`
+	XMLNS_W14  = `http://schemas.microsoft.com/office/word/2010/wordml`
+	XMLNS_R    = `http://schemas.openxmlformats.org/officeDocument/2006/relationships`
+	XMLNS_WP   = `http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing`
+	XMLNS_WPS  = `http://schemas.microsoft.com/office/word/2010/wordprocessingShape`
+	XMLNS_WPC  = `http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas`
+	XMLNS_WPG  = `http://schemas.microsoft.com/office/word/2010/wordprocessingGroup`
+	XMLNS_MC   = `http://schemas.openxmlformats.org/markup-compatibility/2006`
+	XMLNS_WP14 = `http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing`
 
 	XMLNS_O = `urn:schemas-microsoft-com:office:office`
 	XMLNS_V = `urn:schemas-microsoft-com:vml`
 
 	XMLNS_PICTURE = `http://schemas.openxmlformats.org/drawingml/2006/picture`
 
-	XMLVAL_MCIGNORABLE = `w14 w15 w16se w16cid w16 w16cex w16sdtdh wp14`
+	XMLVAL_MCIGNORABLE = `w14 wp14 w15`
 )
 
 func getAtt(atts []xml.Attr, name string) string {
@@ -95,13 +96,13 @@ func (b *Body) UnmarshalXML(d *xml.Decoder, _ xml.StartElement) error {
 				}
 				b.Items = append(b.Items, &value)
 			case "sdt":
-				log.Println("sdt")
 				var value StructuredDocumentTag
 				err = d.DecodeElement(&value, &tt)
 				if err != nil && !strings.HasPrefix(err.Error(), "expected") {
 					return err
 				}
 				b.Items = append(b.Items, &value)
+				// log.Println("sdt added in body")
 			case "sectPr":
 				// SectionProperties
 				var value SectPr
@@ -110,7 +111,16 @@ func (b *Body) UnmarshalXML(d *xml.Decoder, _ xml.StartElement) error {
 					return err
 				}
 				b.Items = append(b.Items, &value)
+			case "pageBreakBefore":
+				var value PageBreakBefore
+				v := getAtt(tt.Attr, "val")
+				if v == "" {
+					v = "0"
+				}
+				value.Val = v
+				b.Items = append(b.Items, &value)
 			default:
+				log.Println("Unsupported tag in doc body: ", tt.Name.Local)
 				err = d.Skip() // skip unsupported tags
 				if err != nil {
 					return err
@@ -169,18 +179,19 @@ func (b *Body) DropDrawingOf(name string) {
 // Document <w:document>
 type Document struct {
 	XMLName xml.Name `xml:"w:document"`
-	XMLW    string   `xml:"xmlns:w,attr"`             // cannot be unmarshalled in
-	XMLW14  string   `xml:"xmlns:w14,attr,omitempty"` // cannot be unmarshalled in
-	XMLR    string   `xml:"xmlns:r,attr,omitempty"`   // cannot be unmarshalled in
-	XMLWP   string   `xml:"xmlns:wp,attr,omitempty"`  // cannot be unmarshalled in
-	XMLWPS  string   `xml:"xmlns:wps,attr,omitempty"` // cannot be unmarshalled in
-	XMLWPC  string   `xml:"xmlns:wpc,attr,omitempty"` // cannot be unmarshalled in
-	XMLWPG  string   `xml:"xmlns:wpg,attr,omitempty"` // cannot be unmarshalled in
-	XMLMC   string   `xml:"xmlns:mc,attr,omitempty"`  // cannot be unmarshalled in
-	// XMLWP14 string   `xml:"xmlns:wp14,attr,omitempty"` // cannot be unmarshalled in
+	XMLW    string   `xml:"xmlns:w,attr"`              // cannot be unmarshalled in
+	XMLW10  string   `xml:"xmlns:w10,attr,omitempty"`  // cannot be unmarshalled in
+	XMLW14  string   `xml:"xmlns:w14,attr,omitempty"`  // cannot be unmarshalled in
+	XMLR    string   `xml:"xmlns:r,attr,omitempty"`    // cannot be unmarshalled in
+	XMLWP   string   `xml:"xmlns:wp,attr,omitempty"`   // cannot be unmarshalled in
+	XMLWPS  string   `xml:"xmlns:wps,attr,omitempty"`  // cannot be unmarshalled in
+	XMLWPC  string   `xml:"xmlns:wpc,attr,omitempty"`  // cannot be unmarshalled in
+	XMLWPG  string   `xml:"xmlns:wpg,attr,omitempty"`  // cannot be unmarshalled in
+	XMLMC   string   `xml:"xmlns:mc,attr,omitempty"`   // cannot be unmarshalled in
+	XMLWP14 string   `xml:"xmlns:wp14,attr,omitempty"` // cannot be unmarshalled in
 
-	// XMLO string `xml:"xmlns:o,attr,omitempty"` // cannot be unmarshalled in
-	// XMLV string `xml:"xmlns:v,attr,omitempty"` // cannot be unmarshalled in
+	XMLO string `xml:"xmlns:o,attr,omitempty"` // cannot be unmarshalled in
+	XMLV string `xml:"xmlns:v,attr,omitempty"` // cannot be unmarshalled in
 
 	MCIgnorable string `xml:"mc:Ignorable,attr,omitempty"`
 

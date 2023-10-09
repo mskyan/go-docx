@@ -106,6 +106,8 @@ type StructuredDocumentTagContent struct {
 
 	Paragraphs *[]*Paragraph `xml:"w:p,omitempty"`
 
+	Runs *[]*Run `xml:"w:r,omitempty"`
+
 	Tables *[]*Table `xml:"w:tbl,omitempty"`
 }
 
@@ -125,26 +127,23 @@ func (sdt *StructuredDocumentTag) UnmarshalXML(d *xml.Decoder, start xml.StartEl
 			break
 		}
 
-		// log.Println("sdt", t)
-
-		switch se := t.(type) {
-		case xml.StartElement:
-			switch se.Name.Local {
+		if tt, ok := t.(xml.StartElement); ok {
+			switch tt.Name.Local {
 			case "sdtPr":
 				sdt.SdtPr = &StructuredDocumentTagProperties{}
-				err = d.DecodeElement(sdt.SdtPr, &se)
+				err = d.DecodeElement(sdt.SdtPr, &tt)
 				if err != nil {
 					return err
 				}
 			case "sdtEndPr":
 				sdt.SdtEndPr = &StructuredDocumentTagEndProperties{}
-				err = d.DecodeElement(sdt.SdtEndPr, &se)
+				err = d.DecodeElement(sdt.SdtEndPr, &tt)
 				if err != nil {
 					return err
 				}
 			case "sdtContent":
 				sdt.SdtContent = &StructuredDocumentTagContent{}
-				err = d.DecodeElement(sdt.SdtContent, &se)
+				err = d.DecodeElement(sdt.SdtContent, &tt)
 				if err != nil {
 					return err
 				}
@@ -174,26 +173,23 @@ func (sdtp *StructuredDocumentTagProperties) UnmarshalXML(d *xml.Decoder, start 
 			break
 		}
 
-		// log.Println("sdtp", t)
-
-		switch se := t.(type) {
-		case xml.StartElement:
-			switch se.Name.Local {
+		if tt, ok := t.(xml.StartElement); ok {
+			switch tt.Name.Local {
 			case "rPr":
 				sdtp.Rpr = &RunProperties{}
-				err = d.DecodeElement(sdtp.Rpr, &se)
+				err = d.DecodeElement(sdtp.Rpr, &tt)
 				if err != nil {
 					return err
 				}
 			case "docPartObj":
 				sdtp.DocPartObj = &DocumentPartObject{}
-				err = d.DecodeElement(sdtp.DocPartObj, &se)
+				err = d.DecodeElement(sdtp.DocPartObj, &tt)
 				if err != nil {
 					return err
 				}
 			case "id":
 				sdtp.ID = &TagID{}
-				err = d.DecodeElement(sdtp.ID, &se)
+				err = d.DecodeElement(sdtp.ID, &tt)
 				if err != nil {
 					return err
 				}
@@ -224,18 +220,17 @@ func (sdtp *DocumentPartObject) UnmarshalXML(d *xml.Decoder, start xml.StartElem
 			break
 		}
 
-		switch se := t.(type) {
-		case xml.StartElement:
-			switch se.Name.Local {
+		if tt, ok := t.(xml.StartElement); ok {
+			switch tt.Name.Local {
 			case "docPartGallery":
 				sdtp.DocumentPartGallery = &DocumentPartGallery{}
-				err = d.DecodeElement(sdtp.DocumentPartGallery, &se)
+				err = d.DecodeElement(sdtp.DocumentPartGallery, &tt)
 				if err != nil {
 					return err
 				}
 			case "docPartUnique":
 				sdtp.DocumentPartUnique = &DocumentPartUnique{}
-				err = d.DecodeElement(sdtp.DocumentPartUnique, &se)
+				err = d.DecodeElement(sdtp.DocumentPartUnique, &tt)
 				if err != nil {
 					return err
 				}
@@ -267,12 +262,11 @@ func (sdtc *StructuredDocumentTagContent) UnmarshalXML(d *xml.Decoder, start xml
 
 		// log.Println("sdtc", t)
 
-		switch se := t.(type) {
-		case xml.StartElement:
-			switch se.Name.Local {
+		if tt, ok := t.(xml.StartElement); ok {
+			switch tt.Name.Local {
 			case "p":
 				p := &Paragraph{}
-				err = d.DecodeElement(p, &se)
+				err = d.DecodeElement(p, &tt)
 				if err != nil {
 					return err
 				}
@@ -280,9 +274,19 @@ func (sdtc *StructuredDocumentTagContent) UnmarshalXML(d *xml.Decoder, start xml
 					sdtc.Paragraphs = &[]*Paragraph{}
 				}
 				*sdtc.Paragraphs = append(*sdtc.Paragraphs, p)
+			case "r":
+				r := &Run{}
+				err = d.DecodeElement(r, &tt)
+				if err != nil {
+					return err
+				}
+				if sdtc.Runs == nil {
+					sdtc.Runs = &[]*Run{}
+				}
+				*sdtc.Runs = append(*sdtc.Runs, r)
 			case "tbl":
 				tbl := &Table{}
-				err = d.DecodeElement(tbl, &se)
+				err = d.DecodeElement(tbl, &tt)
 				if err != nil {
 					return err
 				}
@@ -291,10 +295,6 @@ func (sdtc *StructuredDocumentTagContent) UnmarshalXML(d *xml.Decoder, start xml
 				}
 				*sdtc.Tables = append(*sdtc.Tables, tbl)
 			default:
-				err = d.Skip()
-				if err != nil {
-					return err
-				}
 			}
 		}
 	}

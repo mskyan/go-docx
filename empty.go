@@ -39,9 +39,10 @@ func newEmptyA4File() *Docx {
 			XMLWPG:      XMLNS_WPG,
 			XMLMC:       XMLNS_MC,
 			MCIgnorable: XMLVAL_MCIGNORABLE,
-			// XMLO:   XMLNS_O,
-			// XMLV:   XMLNS_V,
-			// XMLWP14: XMLNS_WP14,
+			XMLO:        XMLNS_O,
+			XMLV:        XMLNS_V,
+			XMLW10:      XMLNS_W10,
+			XMLWP14:     XMLNS_WP14,
 			Body: Body{
 				Items: make([]interface{}, 0, 64),
 			},
