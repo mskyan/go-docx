@@ -642,6 +642,7 @@ var irohaFullWidthMap = map[int]string{
 // UnmarshalXML ...
 func (p *Paragraph) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	for _, attr := range start.Attr {
+		log.Println("Paragraph UnmarshalXML attr:", attr.Name.Local, attr.Value)
 		switch attr.Name.Local {
 		case "paraId":
 			p.ParaId = attr.Value
@@ -658,6 +659,8 @@ func (p *Paragraph) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 		default:
 			// ignore other attributes
 		}
+
+		// ★ここで token を consume していない
 	}
 	children := make([]interface{}, 0, 64)
 	for {
