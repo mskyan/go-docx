@@ -24,7 +24,7 @@ import (
 )
 
 type CommonAttrVal struct {
-	Val string `xml:"w:val,attr"`
+	Val string `xml:"w:val,attr,omitempty"`
 }
 
 func (c *CommonAttrVal) UnmarshalXML(d *xml.Decoder, start xml.StartElement) (err error) {
@@ -33,84 +33,91 @@ func (c *CommonAttrVal) UnmarshalXML(d *xml.Decoder, start xml.StartElement) (er
 }
 
 type Numbering struct {
-	XMLName      xml.Name       `xml:"numbering"`
-	AbstractNums *[]AbstractNum `xml:"abstructNmum",omitempty`
-	Nums         *[]Num         `xml:"num",omitempty`
+	XMLName xml.Name `xml:"w:numbering"`
+	XMLW    string   `xml:"xmlns:w,attr"`
+
+	// この XML 指定は正しく働いた
+	AbstractNums *[]AbstractNum `xml:"w:abstractNum",omitempty`
+	Nums         *[]*Num        `xml:"w:num",omitempty`
 }
 
 type AbstractNum struct {
-	XMLName        xml.Name      `xml:"abstructNum",omitempty`
-	AbstractNumID  string        `xml:"w:abstractNumId,attr"`
-	Lvl            *map[int]*Lvl `xml:"lvl"`
-	NSID           *NSID
-	MultiLevelType *MultiLevelType `xml:"multiLevelType",omitempty`
-	Tmpl           *Tmpl           `xml:"tmpl",omitempty`
+	XMLName       xml.Name `xml:"w:abstractNum",omitempty`
+	AbstractNumID string   `xml:"w:abstractNumId,attr,omitempty"`
+
+	// この XML Marshal は正しく働いた
+	Lvl *[]*Lvl `xml:"w:lvl",omitempty"`
+
+	NSID           *NSID           `xml:"w:nsid",omitempty`
+	MultiLevelType *MultiLevelType `xml:"w:multiLevelType",omitempty`
+	Tmpl           *Tmpl           `xml:"w:tmpl",omitempty`
 }
 
 type Num struct {
-	XMLName        xml.Name `xml:"num",omitempty`
-	NumID          string   `xml:"w:numId,attr"`
-	*AbstractNumID `xml:"w:abstractNumId",omitempty`
-	// AbstractNumID *AbstractNumID `xml:"w:abstractNumId",omitempty`
+	XMLName xml.Name `xml:"w:num",omitempty`
+	NumID   string   `xml:"w:numId,attr,omitempty"`
+
+	// ここはフィールド名だけだと正しく処理されない
+	AbstractNumID *AbstractNumID `xml:"w:abstractNumId",omitempty`
 }
 
 type AbstractNumID struct {
-	XMLName xml.Name `xml:"abstractNumId",omitempty`
+	XMLName xml.Name `xml:"w:abstractNumId",omitempty`
 	// CommonAttrVal *CommonAttrVal
 	*CommonAttrVal
 }
 
 type NSID struct {
-	XMLName xml.Name `xml:"nsid",omitempty`
+	XMLName xml.Name `xml:"w:nsid",omitempty`
 	// CommonAttrVal *CommonAttrVal
 	*CommonAttrVal
 }
 
 type MultiLevelType struct {
-	XMLName xml.Name `xml:"multiLevelType",omitempty`
+	XMLName xml.Name `xml:"w:multiLevelType",omitempty`
 	// CommonAttrVal *CommonAttrVal
 	*CommonAttrVal
 }
 
 type Tmpl struct {
-	XMLName xml.Name `xml:"tmpl",omitempty`
+	XMLName xml.Name `xml:"w:tmpl",omitempty`
 	// CommonAttrVal *CommonAttrVal
 	*CommonAttrVal
 }
 
 type Lvl struct {
-	XMLName   xml.Name `xml:"lvl",omitempty`
-	ILvl      int      `xml:"w:ilvl,attr"`
-	Tplc      string   `xml:"w:tplc,attr"`
-	Tentative string   `xml:"w:tentative,attr"`
+	XMLName   xml.Name `xml:"w:lvl",omitempty`
+	ILvl      int      `xml:"w:ilvl,attr,omitempty"`
+	Tplc      string   `xml:"w:tplc,attr,omitempty"`
+	Tentative string   `xml:"w:tentative,attr,omitempty"`
 
-	Start   *Start                 `xml:"start",omitempty`
-	NumFmt  *NumFmt                `xml:"numFmt",omitempty`
-	LvlText *LvlText               `xml:"lvlText",omitempty`
-	LvlJc   *LvlJc                 `xml:"lvlJc",omitempty`
-	Ppr     *[]ParagraphProperties `xml:"pPr",omitempty`
+	Start   *Start                 `xml:"w:start",omitempty`
+	NumFmt  *NumFmt                `xml:"w:numFmt",omitempty`
+	LvlText *LvlText               `xml:"w:lvlText",omitempty`
+	LvlJc   *LvlJc                 `xml:"w:lvlJc",omitempty`
+	Ppr     *[]ParagraphProperties `xml:"w:pPr",omitempty"`
 }
 
 type Start struct {
-	XMLName xml.Name `xml:"start",omitempty`
+	XMLName xml.Name `xml:"w:start",omitempty`
 	// CommonAttrVal *CommonAttrVal
 	*CommonAttrVal
 }
 
 type NumFmt struct {
-	XMLName xml.Name `xml:"numFmt",omitempty`
+	XMLName xml.Name `xml:"w:numFmt",omitempty`
 	// CommonAttrVal *CommonAttrVal
 	*CommonAttrVal
 }
 
 type LvlText struct {
-	XMLName xml.Name `xml:"lvlText",omitempty`
+	XMLName xml.Name `xml:"w:lvlText",omitempty`
 	// CommonAttrVal *CommonAttrVal
 	*CommonAttrVal
 }
 
 type LvlJc struct {
-	XMLName xml.Name `xml:"lvlJc",omitempty`
+	XMLName xml.Name `xml:"w:lvlJc",omitempty`
 	// CommonAttrVal *CommonAttrVal
 	*CommonAttrVal
 }
@@ -143,13 +150,18 @@ func (n *Numbering) UnmarshalXML(d *xml.Decoder, _ xml.StartElement) error {
 					return err
 				}
 				if n.Nums == nil {
-					n.Nums = &[]Num{}
+					n.Nums = &[]*Num{}
 				}
-				*n.Nums = append(*n.Nums, num)
+				*n.Nums = append(*n.Nums, &num)
 			default:
 				// ignore other attributes
 			}
 		}
+
+		// cosume end tag
+		// if _, ok := t.(xml.EndElement); ok {
+		// 	break
+		// }
 	}
 
 	return nil
@@ -181,8 +193,10 @@ func (a *AbstractNum) UnmarshalXML(d *xml.Decoder, start xml.StartElement) (err 
 				l := Lvl{}
 				err = d.DecodeElement(&l, &tt)
 				if a.Lvl == nil {
-					a.Lvl = &map[int]*Lvl{}
+					a.Lvl = &[]*Lvl{}
 				}
+				lvlList := paddingListIfNeeded(a.Lvl, l.ILvl).([]*Lvl)
+				a.Lvl = &lvlList
 				(*a.Lvl)[l.ILvl] = &l
 			case "nsid":
 				n := NewNSID()
@@ -202,13 +216,6 @@ func (a *AbstractNum) UnmarshalXML(d *xml.Decoder, start xml.StartElement) (err 
 			}
 		}
 	}
-	// log.Println("a.Lvl: ", *a.Lvl)
-	// a.Lvl の各要素の実態を表示
-	// ここまでは正確に処理されていた。
-	// for _, v := range *a.Lvl {
-	// 	log.Println("v.LvlText.Val: ", v.LvlText.Val)
-	// }
-
 	return
 }
 
@@ -311,11 +318,14 @@ func (n *Num) UnmarshalXML(d *xml.Decoder, start xml.StartElement) (err error) {
 		if tt, ok := t.(xml.StartElement); ok {
 			switch tt.Name.Local {
 			case "abstractNumId":
+				// var an = AbstractNumID{}
+				// var an AbstractNumID
 				an := NewAbstractNumID()
-				err = d.DecodeElement(an, &tt)
+				err = d.DecodeElement(&an, &tt)
 				if err != nil {
 					return err
 				}
+				// log.Println("an: ", an)
 				n.AbstractNumID = an
 			default:
 				// ignore other attributes
@@ -372,4 +382,17 @@ func NewLvlText() *LvlText {
 
 func NewLvlJc() *LvlJc {
 	return &LvlJc{CommonAttrVal: &CommonAttrVal{}}
+}
+
+func paddingListIfNeeded(list interface{}, index int) interface{} {
+	v := list.(*[]*Lvl)
+	// switch v := list.(type) {
+	// case *[]Lvl:
+	if index < len(*v) {
+		return v
+	}
+	return append(*v, make([]*Lvl, index-len(*v)+1)...)
+	// default:
+	// panic(fmt.Sprintf("paddingListIfNeeded: unsupported type %T", v))
+	// }
 }

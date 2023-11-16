@@ -112,6 +112,7 @@ func LoadBodyItems(items []interface{}, media []Media) *Docx {
 				Space: "w",
 			},
 			XMLW:   XMLNS_W,
+			XMLW14: XMLNS_W14,
 			XMLR:   XMLNS_R,
 			XMLWP:  XMLNS_WP,
 			XMLWPS: XMLNS_WPS,

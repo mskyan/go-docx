@@ -340,6 +340,50 @@ type Ind struct {
 	Hanging        int `xml:"w:hanging,attr,omitempty"`
 }
 
+type PBDR struct {
+	XMLName xml.Name `xml:"w:pBdr,omitempty"`
+
+	Top     *BDTop     `xml:"w:top,omitempty"`
+	Left    *BDLeft    `xml:"w:left,omitempty"`
+	Bottom  *BDBottom  `xml:"w:bottom,omitempty"`
+	Right   *BDRight   `xml:"w:right,omitempty"`
+	Between *BDBetween `xml:"w:between,omitempty"`
+	// Bar     *BDBar     `xml:"w:bar,omitempty"`
+}
+
+type CommonBDAttr struct {
+	Size  int    `xml:"w:sz,attr,omitempty"`
+	Space int    `xml:"w:space,attr,omitempty"`
+	Color string `xml:"w:color,attr,omitempty"`
+	Val   string `xml:"w:val,attr,omitempty"`
+}
+
+type BDTop struct {
+	XMLName xml.Name `xml:"w:top,omitempty"`
+	*CommonBDAttr
+}
+type BDBottom struct {
+	XMLName xml.Name `xml:"w:bottom,omitempty"`
+	*CommonBDAttr
+}
+type BDLeft struct {
+	XMLName xml.Name `xml:"w:left,omitempty"`
+	*CommonBDAttr
+}
+type BDRight struct {
+	XMLName xml.Name `xml:"w:right,omitempty"`
+	*CommonBDAttr
+}
+type BDBetween struct {
+	XMLName xml.Name `xml:"w:between,omitempty"`
+	*CommonBDAttr
+}
+
+type PageBreakBefore struct {
+	XMLName xml.Name `xml:"w:pageBreakBefore,omitempty"`
+	Val     string   `xml:"w:val,attr,omitempty"`
+}
+
 // UnmarshalXML ...
 func (i *Ind) UnmarshalXML(d *xml.Decoder, start xml.StartElement) (err error) {
 	for _, attr := range start.Attr {
@@ -384,7 +428,17 @@ type NumID struct {
 
 type KeepNext struct {
 	XMLName xml.Name `xml:"w:keepNext,omitempty"`
-	Val     int      `xml:"w:val,attr,omitempty"`
+	Val     string   `xml:"w:val,attr,omitempty"`
+}
+
+type KeepLines struct {
+	XMLName xml.Name `xml:"w:keepLines,omitempty"`
+	Val     string   `xml:"w:val,attr,omitempty"`
+}
+
+type WidowControl struct {
+	XMLName xml.Name `xml:"w:widowControl,omitempty"`
+	Val     string   `xml:"w:val,attr,omitempty"`
 }
 
 func (n *NumPr) UnmarshalXML(d *xml.Decoder, start xml.StartElement) (err error) {
@@ -451,34 +505,71 @@ func (n *NumID) UnmarshalXML(d *xml.Decoder, start xml.StartElement) (err error)
 }
 
 // UnmarshalXML Ilvl
-func (i *Ilvl) UnmarshalXML(d *xml.Decoder, start xml.StartElement) (err error) {
+// func (i *Ilvl) UnmarshalXML(d *xml.Decoder, start xml.StartElement) (err error) {
+// 	for _, attr := range start.Attr {
+// 		switch attr.Name.Local {
+// 		case "val":
+// 			if attr.Value == "" {
+// 				i.Val = 0
+// 			} else {
+// 				i.Val, err = GetInt(attr.Value)
+// 				if err != nil {
+// 					return
+// 				}
+// 			}
+// 		default:
+// 			// ignore other attributes
+// 		}
+// 	}
+
+// 	// Consume the end element
+// 	_, err = d.Token()
+// 	return
+// }
+
+// // 0: false, 1: true
+// // 段落が次の段落と同じページに表示されるようにするかどうかを指定します。
+// func (k *KeepNext) UnmarshalXML(d *xml.Decoder, start xml.StartElement) (err error) {
+// 	for _, attr := range start.Attr {
+// 		switch attr.Name.Local {
+// 		case "val":
+// 			k.Val, err = GetInt(attr.Value)
+// 			if err != nil {
+// 				return
+// 			}
+// 		default:
+// 			// ignore other attributes
+// 		}
+// 	}
+
+// 	// Consume the end element
+// 	_, err = d.Token()
+// 	return
+// }
+
+// func (k *KeepLines) UnmarshalXML(d *xml.Decoder, start xml.StartElement) (err error) {
+// 	for _, attr := range start.Attr {
+// 		switch attr.Name.Local {
+// 		case "val":
+// 			k.Val, err = GetInt(attr.Value)
+// 			if err != nil {
+// 				return
+// 			}
+// 		default:
+// 			// ignore other attributes
+// 		}
+// 	}
+
+// 	// Consume the end element
+// 	_, err = d.Token()
+// 	return
+// }
+
+func (w *WidowControl) UnmarshalXML(d *xml.Decoder, start xml.StartElement) (err error) {
 	for _, attr := range start.Attr {
 		switch attr.Name.Local {
 		case "val":
-			i.Val, err = GetInt(attr.Value)
-			if err != nil {
-				return
-			}
-		default:
-			// ignore other attributes
-		}
-	}
-
-	// Consume the end element
-	_, err = d.Token()
-	return
-}
-
-// 0: false, 1: true
-// 段落が次の段落と同じページに表示されるようにするかどうかを指定します。
-func (k *KeepNext) UnmarshalXML(d *xml.Decoder, start xml.StartElement) (err error) {
-	for _, attr := range start.Attr {
-		switch attr.Name.Local {
-		case "val":
-			k.Val, err = GetInt(attr.Value)
-			if err != nil {
-				return
-			}
+			w.Val = attr.Value
 		default:
 			// ignore other attributes
 		}

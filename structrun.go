@@ -23,6 +23,7 @@ package docx
 import (
 	"encoding/xml"
 	"io"
+	"log"
 	"reflect"
 	"strings"
 )
@@ -39,6 +40,13 @@ type Run struct {
 
 	InstrText string `xml:"w:instrText,omitempty"`
 
+	Text *Text `xml:"w:t,omitempty"`
+
+	FldChar *FldChar `xml:"w:fldChar,omitempty"`
+
+	RsidR   string `xml:"w:rsidR,attr,omitempty"`
+	RsidRPr string `xml:"w:rsidRPr,attr,omitempty"`
+
 	Children []interface{}
 
 	file *Docx
@@ -50,10 +58,10 @@ func (r *Run) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 		switch attr.Name.Local {
 		case "space":
 			r.Space = attr.Value
-		/*case "rsidR":
+		case "rsidR":
 			r.RsidR = attr.Value
 		case "rsidRPr":
-			r.RsidRPr = attr.Value*/
+			r.RsidRPr = attr.Value
 		default:
 			// ignore other attributes
 		}
@@ -99,6 +107,14 @@ func (r *Run) parse(d *xml.Decoder, tt xml.StartElement) (child interface{}, err
 		}
 		r.InstrText = value
 		return nil, nil
+	case "fldChar":
+		var value FldChar
+		err = d.DecodeElement(&value, &tt)
+		if err != nil && !strings.HasPrefix(err.Error(), "expected") {
+			return nil, err
+		}
+		r.FldChar = &value
+		return nil, nil
 	case "t":
 		var value Text
 		err = d.DecodeElement(&value, &tt)
@@ -117,7 +133,9 @@ func (r *Run) parse(d *xml.Decoder, tt xml.StartElement) (child interface{}, err
 	case "tab":
 		child = &Tab{}
 	case "br":
-		child = &BarterRabbet{}
+		child = &BarterRabbet{
+			Type: getAtt(tt.Attr, "type"),
+		}
 	case "AlternateContent":
 		/*var value AlternateContent
 		value.file = r.file
@@ -212,6 +230,9 @@ type RunProperties struct {
 	Underline *Underline
 	VertAlign *VertAlign
 	Strike    *Strike
+	NoProof   *NoProof
+	WebHidden *WebHidden
+	Lang      *Lang
 }
 
 // UnmarshalXML ...
@@ -301,9 +322,31 @@ func (r *RunProperties) UnmarshalXML(d *xml.Decoder, _ xml.StartElement) error {
 				var value Strike
 				value.Val = getAtt(tt.Attr, "val")
 				r.Strike = &value
+			case "noProof":
+				var value NoProof
+				value.Val = getAtt(tt.Attr, "val")
+				// if value.Val == "" {
+				// continue
+				// }
+				r.NoProof = &value
+			case "webHidden":
+				var value WebHidden
+				value.Val = getAtt(tt.Attr, "val")
+				// if value.Val == "" {
+				// continue
+				// }
+				r.WebHidden = &value
+			case "lang":
+				var value Lang
+				value.Val = getAtt(tt.Attr, "val")
+				// if value.Val == "" {
+				// continue
+				// }
+				r.Lang = &value
 			default:
 				err = d.Skip() // skip unsupported tags
 				if err != nil {
+					log.Println("RunProperties: ", err)
 					return err
 				}
 				continue
@@ -316,11 +359,15 @@ func (r *RunProperties) UnmarshalXML(d *xml.Decoder, _ xml.StartElement) error {
 
 // RunFonts specifies the fonts used in the text of a run.
 type RunFonts struct {
-	XMLName  xml.Name `xml:"w:rFonts,omitempty"`
-	ASCII    string   `xml:"w:ascii,attr,omitempty"`
-	EastAsia string   `xml:"w:eastAsia,attr,omitempty"`
-	HAnsi    string   `xml:"w:hAnsi,attr,omitempty"`
-	Hint     string   `xml:"w:hint,attr,omitempty"`
+	XMLName       xml.Name `xml:"w:rFonts,omitempty"`
+	ASCII         string   `xml:"w:ascii,attr,omitempty"`
+	EastAsia      string   `xml:"w:eastAsia,attr,omitempty"`
+	HAnsi         string   `xml:"w:hAnsi,attr,omitempty"`
+	Hint          string   `xml:"w:hint,attr,omitempty"`
+	AsciiTheme    string   `xml:"w:asciiTheme,attr,omitempty"`
+	EastAsiaTheme string   `xml:"w:eastAsiaTheme,attr,omitempty"`
+	HAnsiTheme    string   `xml:"w:hAnsiTheme,attr,omitempty"`
+	CSTheme       string   `xml:"w:cstheme,attr,omitempty"`
 }
 
 // UnmarshalXML ...
@@ -335,9 +382,54 @@ func (f *RunFonts) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 			f.HAnsi = attr.Value
 		case "hint":
 			f.Hint = attr.Value
+		case "asciiTheme":
+			f.AsciiTheme = attr.Value
+		case "eastAsiaTheme":
+			f.EastAsiaTheme = attr.Value
+		case "hAnsiTheme":
+			f.HAnsiTheme = attr.Value
+		case "cstheme":
+			f.CSTheme = attr.Value
 		}
 	}
 	// Consume the end element
 	_, err := d.Token()
 	return err
+}
+
+type FldChar struct {
+	XMLName xml.Name `xml:"w:fldChar,omitempty"`
+
+	FldCharType string `xml:"w:fldCharType,attr,omitempty"`
+}
+
+// unmarshal and get FldChar attributes
+func (f *FldChar) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	for _, attr := range start.Attr {
+		switch attr.Name.Local {
+		case "fldCharType":
+			f.FldCharType = attr.Value
+		}
+	}
+	// Consume the end element
+	_, err := d.Token()
+	return err
+}
+
+type NoProof struct {
+	XMLName xml.Name `xml:"w:noProof,omitempty"`
+
+	Val string `xml:"w:val,attr,omitempty"`
+}
+
+type WebHidden struct {
+	XMLName xml.Name `xml:"w:webHidden,omitempty"`
+
+	Val string `xml:"w:val,attr,omitempty"`
+}
+
+type Lang struct {
+	XMLName xml.Name `xml:"w:lang,omitempty"`
+
+	Val string `xml:"w:val,attr,omitempty"`
 }

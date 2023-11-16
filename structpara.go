@@ -32,21 +32,26 @@ import (
 // ParagraphProperties <w:pPr>
 // Properties in this struct are defined in structeffects.go
 type ParagraphProperties struct {
-	XMLName        xml.Name `xml:"w:pPr,omitempty"`
-	Tabs           *Tabs
-	Spacing        *Spacing
-	Ind            *Ind
-	Justification  *Justification
-	Shade          *Shade
-	Kern           *Kern
-	Style          *Style
-	TextAlignment  *TextAlignment
-	AdjustRightInd *AdjustRightInd
-	SnapToGrid     *SnapToGrid
-	Kinsoku        *Kinsoku
-	OverflowPunct  *OverflowPunct
-	NumPr          *NumPr
-	KeepNext       *KeepNext
+	XMLName         xml.Name `xml:"w:pPr,omitempty"`
+	Tabs            *Tabs
+	Spacing         *Spacing
+	Ind             *Ind
+	Justification   *Justification
+	Shade           *Shade
+	Kern            *Kern
+	Style           *Style
+	TextAlignment   *TextAlignment
+	AdjustRightInd  *AdjustRightInd
+	SnapToGrid      *SnapToGrid
+	Kinsoku         *Kinsoku
+	OverflowPunct   *OverflowPunct
+	NumPr           *NumPr
+	KeepNext        *KeepNext
+	KeepLines       *KeepLines
+	WidowControl    *WidowControl
+	PageBreakBefore *PageBreakBefore
+	SectPr          *SectPr
+	PBDR            *PBDR
 
 	RunProperties *RunProperties
 }
@@ -59,6 +64,7 @@ func (p *ParagraphProperties) UnmarshalXML(d *xml.Decoder, _ xml.StartElement) e
 			break
 		}
 		if err != nil {
+			log.Println("UnmarshalXML ParagraphProperties error:", err)
 			return err
 		}
 		if tt, ok := t.(xml.StartElement); ok {
@@ -170,13 +176,51 @@ func (p *ParagraphProperties) UnmarshalXML(d *xml.Decoder, _ xml.StartElement) e
 				var value KeepNext
 				v := getAtt(tt.Attr, "val")
 				if v == "" {
-					continue
+					v = "0"
 				}
-				value.Val, err = GetInt(v)
-				if err != nil {
+				value.Val = v
+				p.KeepNext = &value
+			case "keepLines":
+				// ここで、値を取得しておく。
+				// decoder に渡さないことで
+				// 閉じタグを別に造らない。
+				var value KeepLines
+				v := getAtt(tt.Attr, "val")
+				if v == "" {
+					v = "0"
+				}
+				value.Val = v
+				p.KeepLines = &value
+			case "widowControl":
+				var value WidowControl
+				v := getAtt(tt.Attr, "val")
+				if v == "" {
+					v = "0"
+				}
+				value.Val = v
+				p.WidowControl = &value
+			case "sectPr":
+				var value SectPr
+				err = d.DecodeElement(&value, &tt)
+				if err != nil && !strings.HasPrefix(err.Error(), "expected") {
 					return err
 				}
-				p.KeepNext = &value
+				p.SectPr = &value
+			case "pageBreakBefore":
+				var value PageBreakBefore
+				v := getAtt(tt.Attr, "val")
+				if v == "" {
+					v = "0"
+				}
+				value.Val = v
+				p.PageBreakBefore = &value
+			case "pBdr":
+				var value PBDR
+				err = d.DecodeElement(&value, &tt)
+				if err != nil && !strings.HasPrefix(err.Error(), "expected") {
+					return err
+				}
+				p.PBDR = &value
 			default:
 				// 取り損ねた値を log に表示
 				log.Println("UnmarshalXML ParagraphProperties unsupported, skip:", tt.Name.Local)
@@ -188,6 +232,11 @@ func (p *ParagraphProperties) UnmarshalXML(d *xml.Decoder, _ xml.StartElement) e
 				continue
 			}
 		}
+
+		// consume end tag
+		// if _, ok := t.(xml.EndElement); ok {
+		// 	break
+		// }
 	}
 	return nil
 }
@@ -196,10 +245,26 @@ func (p *ParagraphProperties) UnmarshalXML(d *xml.Decoder, _ xml.StartElement) e
 type Paragraph struct {
 	XMLName xml.Name `xml:"w:p,omitempty"`
 
-	// RsidR        string `xml:"w:rsidR,attr,omitempty"`
-	// RsidRPr      string `xml:"w:rsidRPr,attr,omitempty"`
-	// RsidRDefault string `xml:"w:rsidRDefault,attr,omitempty"`
-	// RsidP        string `xml:"w:rsidP,attr,omitempty"`
+	ParaId       string `xml:"w14:paraId,attr,omitempty"`
+	RsidR        string `xml:"w:rsidR,attr,omitempty"`
+	RsidRPr      string `xml:"w:rsidRPr,attr,omitempty"`
+	RsidRDefault string `xml:"w:rsidRDefault,attr,omitempty"`
+	RsidP        string `xml:"w:rsidP,attr,omitempty"`
+	TextId       string `xml:"w14:textId,attr,omitempty"`
+
+	Hyperlink     *[]*Hyperlink     `xml:"w:hyperlink,omitempty"`     // 0 or more
+	BookmarkStart *[]*BookmarkStart `xml:"w:bookmarkStart,omitempty"` // 0 or more
+	BookmarkEnd   *[]*BookmarkEnd   `xml:"w:bookmarkEnd,omitempty"`   // 0 or more
+
+	StructuredDocumentTag *[]*StructuredDocumentTag `xml:"w:sdt,omitempty"` // 0 or more
+
+	KeepLines       *KeepLines       `xml:"w:keepLines,omitempty"`
+	WidowControl    *WidowControl    `xml:"w:widowControl,omitempty"`
+	PageBreakBefore *PageBreakBefore `xml:"w:pageBreakBefore,omitempty"`
+	PBDR            *PBDR            `xml:"w:pBdr,omitempty"`
+	Ind             *Ind             `xml:"w:ind,omitempty"`
+	Spacing         *Spacing         `xml:"w:spacing,omitempty"`
+	Shd             *Shade           `xml:"w:shd,omitempty"`
 
 	Properties *ParagraphProperties
 	Children   []interface{}
@@ -228,17 +293,21 @@ func (p *Paragraph) String() string {
 		switch o := c.(type) {
 		case *Hyperlink:
 			id := o.ID
-			text := o.Run.InstrText
-			link, err := p.file.ReferTarget(id)
-			sb.WriteString("[")
-			sb.WriteString(text)
-			sb.WriteString("](")
-			if err != nil {
-				sb.WriteString(id)
-			} else {
-				sb.WriteString(link)
+			// there are multiple Run in Hyperlink
+			// range o.Runs
+			for _, r := range *o.Runs {
+				text := r.InstrText
+				link, err := p.file.ReferTarget(id)
+				sb.WriteString("[")
+				sb.WriteString(text)
+				sb.WriteString("](")
+				if err != nil {
+					sb.WriteString(id)
+				} else {
+					sb.WriteString(link)
+				}
+				sb.WriteByte(')')
 			}
-			sb.WriteByte(')')
 		case *Run:
 			for _, c := range o.Children {
 				switch x := c.(type) {
@@ -287,7 +356,7 @@ type abstractNumFunc func(args *[]int) string
 
 var numbering *Numbering
 var abstractNums *[]AbstractNum
-var nums *[]Num
+var nums *[]*Num
 
 var numIDToAbstractNumIDMap = make(map[int]int)
 
@@ -427,7 +496,7 @@ func generateAbstractNumToFuncMap() {
 		}
 	}
 
-	log.Println("numOfFunc:", numOfFunc)
+	// log.Println("numOfFunc:", numOfFunc)
 }
 
 func getILvlCountList(abstractNumID, iLvl int, isRestart bool) *[]int {
@@ -481,10 +550,10 @@ func getAbstractNumFunc(abstractNumID int,
 			// log.Println("lvlText(before):", lvlText)
 
 			lvlTextReplaced = strings.Replace(lvlText, "%"+iStr, n, -1)
-			log.Println(
-				"val:", val,
-				"n:", n,
-				"lvlTextReplaced:", lvlTextReplaced)
+			// log.Println(
+			// "val:", val,
+			// "n:", n,
+			// "lvlTextReplaced:", lvlTextReplaced)
 		}
 
 		return lvlTextReplaced
@@ -571,9 +640,11 @@ var irohaFullWidthMap = map[int]string{
 }
 
 // UnmarshalXML ...
-func (p *Paragraph) UnmarshalXML(d *xml.Decoder, _ xml.StartElement) error {
-	/*for _, attr := range start.Attr {
+func (p *Paragraph) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	for _, attr := range start.Attr {
 		switch attr.Name.Local {
+		case "paraId":
+			p.ParaId = attr.Value
 		case "rsidR":
 			p.RsidR = attr.Value
 		case "rsidRPr":
@@ -582,10 +653,12 @@ func (p *Paragraph) UnmarshalXML(d *xml.Decoder, _ xml.StartElement) error {
 			p.RsidRDefault = attr.Value
 		case "rsidP":
 			p.RsidP = attr.Value
+		case "textId":
+			p.TextId = attr.Value
 		default:
 			// ignore other attributes
 		}
-	}*/
+	}
 	children := make([]interface{}, 0, 64)
 	for {
 		t, err := d.Token()
@@ -596,23 +669,80 @@ func (p *Paragraph) UnmarshalXML(d *xml.Decoder, _ xml.StartElement) error {
 			return err
 		}
 		if tt, ok := t.(xml.StartElement); ok {
+			// log.Println("Paragraph UnmarshalXML:", tt.Name.Local)
 			var elem interface{}
 			switch tt.Name.Local {
+			case "pageBreakBefore":
+				var value PageBreakBefore
+				v := getAtt(tt.Attr, "val")
+				if v == "" {
+					v = "0"
+				}
+				p.PageBreakBefore = &value
+				elem = &value
+			case "keepLines":
+				var value KeepLines
+				v := getAtt(tt.Attr, "val")
+				if v == "" {
+					v = "0"
+				}
+				value.Val = v
+				p.KeepLines = &value
+				elem = &value
 			case "hyperlink":
+				// log.Println("hyperlink")
 				var value Hyperlink
 				err = d.DecodeElement(&value, &tt)
 				if err != nil && !strings.HasPrefix(err.Error(), "expected") {
 					return err
 				}
-				id := getAtt(tt.Attr, "id")
-				anchor := getAtt(tt.Attr, "anchor")
-				if id != "" {
-					value.ID = id
-				}
-				if anchor != "" {
-					value.ID = anchor
+				if p.Hyperlink == nil {
+					p.Hyperlink = &[]*Hyperlink{&value}
+				} else {
+					*p.Hyperlink = append(*p.Hyperlink, &value)
 				}
 				elem = &value
+			case "bookmarkStart":
+				var value BookmarkStart
+				err = d.DecodeElement(&value, &tt)
+				if err != nil && !strings.HasPrefix(err.Error(), "expected") {
+					return err
+				}
+
+				if p.BookmarkStart == nil {
+					p.BookmarkStart = &[]*BookmarkStart{&value}
+				} else {
+					*p.BookmarkStart = append(*p.BookmarkStart, &value)
+				}
+				elem = &value
+			case "bookmarkEnd":
+				var value BookmarkEnd
+				err = d.DecodeElement(&value, &tt)
+				if err != nil && !strings.HasPrefix(err.Error(), "expected") {
+					return err
+				}
+
+				if p.BookmarkEnd == nil {
+					p.BookmarkEnd = &[]*BookmarkEnd{&value}
+				} else {
+					*p.BookmarkEnd = append(*p.BookmarkEnd, &value)
+				}
+				elem = &value
+			case "sdt":
+				var value StructuredDocumentTag
+				err = d.DecodeElement(&value, &tt)
+				if err != nil && !strings.HasPrefix(err.Error(), "expected") {
+					return err
+				}
+
+				if p.StructuredDocumentTag == nil {
+					p.StructuredDocumentTag = &[]*StructuredDocumentTag{&value}
+				} else {
+					*p.StructuredDocumentTag = append(*p.StructuredDocumentTag, &value)
+				}
+
+				elem = &value
+				// log.Println("sdt added in paragraph")
 			case "r":
 				var value Run
 				value.file = p.file
@@ -634,13 +764,12 @@ func (p *Paragraph) UnmarshalXML(d *xml.Decoder, _ xml.StartElement) error {
 				if err != nil && !strings.HasPrefix(err.Error(), "expected") {
 					return err
 				}
-				p.Properties = &value
+				// p.Properties = &value
 
-				// これも、Children に含めてみる。
-				// 構造上、正しい。
+				// 重複するのでひとまず省く
 				elem = &value
-				// continue
 			default:
+				log.Println("UnmarshalXML Paragraph unsupported, skip:", tt.Name.Local)
 				err = d.Skip() // skip unsupported tags
 				if err != nil {
 					return err
