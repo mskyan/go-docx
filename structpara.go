@@ -476,9 +476,9 @@ func getAbstractNumFunc(abstractNumID int,
 
 			// int to string
 			iStr := strconv.Itoa(iLvl + 1)
-			log.Println("iStr:", iStr)
+			// log.Println("iStr:", iStr)
 
-			log.Println("lvlText(before):", lvlText)
+			// log.Println("lvlText(before):", lvlText)
 
 			lvlTextReplaced = strings.Replace(lvlText, "%"+iStr, n, -1)
 			log.Println(
