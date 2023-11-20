@@ -28,7 +28,10 @@ func newEmptyA4File() *Docx {
 	docx := &Docx{
 		Document: Document{
 			XMLName: xml.Name{
-				Space: "w",
+				// こちらで w プレフィクスが入るようになった。
+				Space: "http://schemas.openxmlformats.org/wordprocessingml/2006/main",
+				Local: "document",
+				// Space: "w",
 			},
 			XMLW:        XMLNS_W,
 			XMLW14:      XMLNS_W14,
