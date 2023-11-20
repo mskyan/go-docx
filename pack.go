@@ -25,7 +25,9 @@ import (
 	"bytes"
 	"encoding/xml"
 	"io"
+	"log"
 	"os"
+	"regexp"
 )
 
 // pack receives a zip file writer (word documents are a zip with multiple xml inside)
@@ -91,5 +93,22 @@ func (m marshaller) WriteTo(w io.Writer) (n int64, err error) {
 		return
 	}
 	err = xml.NewEncoder(w).Encode(m.data)
+	if err != nil {
+		log.Fatal(err)
+	}
+	// experimentally added
+	if _, ok := m.data.(Document); ok {
+		log.Println("pack.go: WriteTo: SelfClosing(m.data.([]byte))")
+		m.data, err = SelfClosing(m.data.([]byte))
+	}
+
+	log.Println("pack.go: WriteTo: xml.NewEncoder(w).Encode(m.data)",
+		"m.data:", m.data, "err:", err)
+
 	return
+}
+
+func SelfClosing(xml []byte) ([]byte, error) {
+	regex, err := regexp.Compile(`></[A-Za-z0-9_:]+>`)
+	return regex.ReplaceAll(xml, []byte("/>")), err
 }

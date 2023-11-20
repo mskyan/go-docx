@@ -643,7 +643,7 @@ var irohaFullWidthMap = map[int]string{
 func (p *Paragraph) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	// 生成された document.xml の p にちゃんと attr の値群は入っている。
 	for _, attr := range start.Attr {
-		log.Println("Paragraph UnmarshalXML attr:", attr.Name.Local, attr.Value)
+		// log.Println("Paragraph UnmarshalXML attr:", attr.Name.Local, attr.Value)
 		switch attr.Name.Local {
 		case "paraId":
 			p.ParaId = attr.Value
