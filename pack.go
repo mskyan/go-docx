@@ -95,12 +95,19 @@ func (m marshaller) WriteTo(w io.Writer) (n int64, err error) {
 
 	// Word の Self-Closing Tag の出力に倣う。
 	// (*Document) detected.
+	// if false {
 	if _, ok := m.data.(*Document); ok {
 		marshalled, err := xml.Marshal(m.data)
 		if err != nil {
 			log.Fatal(err)
 		}
+
+		// 必要なし。VS Code のある Format Document を実施すると、namespace 文字列が消される、というだけだった。
+		// namespaceAdded := AddNamespaceForOpenTag(marshalled, "w")
+		// namespaceAdded = AddNamespaceForCloseTag(namespaceAdded, "w")
+
 		modifiedMarshalled := SelfClosing(marshalled)
+		// modifiedMarshalled := SelfClosing(namespaceAdded)
 
 		// w へ書き出す
 		_, err = w.Write(modifiedMarshalled)
@@ -121,4 +128,16 @@ func (m marshaller) WriteTo(w io.Writer) (n int64, err error) {
 func SelfClosing(xml []byte) []byte {
 	re := regexp.MustCompile(`<([^/>]+)( +[^/>]+)*></[^/>]+>`)
 	return re.ReplaceAll(xml, []byte(`<$1$2 />`))
+}
+
+// 必要なし。VS Code のある Format Document を実施すると、namespace 文字列が消される、というだけだった。
+func AddNamespaceForOpenTag(xml []byte, namespace string) []byte {
+	re := regexp.MustCompile(`<([^/>:]+)( +[^/>]+)*>`)
+	return re.ReplaceAll(xml, []byte(`<`+namespace+`:$1$2>`))
+}
+
+// 必要なし。VS Code のある Format Document を実施すると、namespace 文字列が消される、というだけだった。
+func AddNamespaceForCloseTag(xml []byte, namespace string) []byte {
+	re := regexp.MustCompile(`</([^/>:]+)>`)
+	return re.ReplaceAll(xml, []byte(`</`+namespace+`:$1>`))
 }
