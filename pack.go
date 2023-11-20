@@ -92,23 +92,33 @@ func (m marshaller) WriteTo(w io.Writer) (n int64, err error) {
 	if err != nil {
 		return
 	}
-	err = xml.NewEncoder(w).Encode(m.data)
-	if err != nil {
-		log.Fatal(err)
-	}
-	// experimentally added
-	if _, ok := m.data.(Document); ok {
-		log.Println("pack.go: WriteTo: SelfClosing(m.data.([]byte))")
-		m.data, err = SelfClosing(m.data.([]byte))
-	}
 
-	log.Println("pack.go: WriteTo: xml.NewEncoder(w).Encode(m.data)",
-		"m.data:", m.data, "err:", err)
+	// Word の Self-Closing Tag の出力に倣う。
+	// (*Document) detected.
+	if _, ok := m.data.(*Document); ok {
+		marshalled, err := xml.Marshal(m.data)
+		if err != nil {
+			log.Fatal(err)
+		}
+		modifiedMarshalled := SelfClosing(marshalled)
+
+		// w へ書き出す
+		_, err = w.Write(modifiedMarshalled)
+		if err != nil {
+			log.Fatal(err)
+		}
+	} else {
+		err = xml.NewEncoder(w).Encode(m.data)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
 
 	return
 }
 
-func SelfClosing(xml []byte) ([]byte, error) {
-	regex, err := regexp.Compile(`></[A-Za-z0-9_:]+>`)
-	return regex.ReplaceAll(xml, []byte("/>")), err
+// this pattern properly works
+func SelfClosing(xml []byte) []byte {
+	re := regexp.MustCompile(`<([^/>]+)( +[^/>]+)*></[^/>]+>`)
+	return re.ReplaceAll(xml, []byte(`<$1$2 />`))
 }
