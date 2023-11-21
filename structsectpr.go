@@ -15,15 +15,16 @@ import (
 // </w:sectPr>
 
 type SectPr struct {
-	XMLName         xml.Name         `xml:"w:sectPr"`
-	RsidR           string           `xml:"w:rsidR,attr,omitempty"`
-	RsidRPr         string           `xml:"w:rsidRPr,attr,omitempty"`
-	RsidSect        string           `xml:"w:rsidSect,attr,omitempty"`
-	FooterReference *FooterReference `xml:"w:footerReference,omitempty"`
-	PgSz            *PgSz            `xml:"w:pgSz,omitempty"`
-	PgMar           *PgMar           `xml:"w:pgMar,omitempty"`
-	Cols            *Cols            `xml:"w:cols,omitempty"`
-	DocGrid         *DocGrid         `xml:"w:docGrid,omitempty"`
+	XMLName         xml.Name           `xml:"w:sectPr"`
+	RsidR           string             `xml:"w:rsidR,attr,omitempty"`
+	RsidRPr         string             `xml:"w:rsidRPr,attr,omitempty"`
+	RsidSect        string             `xml:"w:rsidSect,attr,omitempty"`
+	FooterReference *[]FooterReference `xml:"w:footerReference,omitempty"`
+	// FooterReference *FooterReference `xml:"w:footerReference,omitempty"`
+	PgSz    *PgSz    `xml:"w:pgSz,omitempty"`
+	PgMar   *PgMar   `xml:"w:pgMar,omitempty"`
+	Cols    *Cols    `xml:"w:cols,omitempty"`
+	DocGrid *DocGrid `xml:"w:docGrid,omitempty"`
 }
 
 type FooterReference struct {
@@ -82,13 +83,20 @@ func (s *SectPr) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 		switch se := t.(type) {
 		case xml.StartElement:
 			switch se.Name.Local {
-			// TODO: footerReference allows for multiple entries
+			// footerReference allows for multiple entries
 			case "footerReference":
 				var v FooterReference
 				if err := d.DecodeElement(&v, &se); err != nil {
 					return err
 				}
-				s.FooterReference = &v
+				if s.FooterReference == nil {
+					s.FooterReference = &[]FooterReference{}
+				}
+
+				// append
+				*s.FooterReference = append(*s.FooterReference, v)
+
+				// s.FooterReference = &v
 			case "pgSz":
 				var v PgSz
 				if err := d.DecodeElement(&v, &se); err != nil {
