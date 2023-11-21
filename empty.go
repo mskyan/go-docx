@@ -51,6 +51,9 @@ func newEmptyA4File() *Docx {
 				Items: make([]interface{}, 0, 64),
 			},
 		},
+		// NOTE: ある程度固定のものと、必要に応じて追加されるものとある。
+		// footer, footnotes, その他、document.xml から参照する rId の宛ては
+		// 存在しないとおそらく起動時エラー。（開くこと自体はできるものの）
 		docRelation: Relationships{
 			Xmlns: XMLNS_REL,
 			Relationship: []Relationship{
