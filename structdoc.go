@@ -34,6 +34,7 @@ const (
 	XMLNS_W    = `http://schemas.openxmlformats.org/wordprocessingml/2006/main`
 	XMLNS_W10  = `urn:schemas-microsoft-com:office:word`
 	XMLNS_W14  = `http://schemas.microsoft.com/office/word/2010/wordml`
+	XMLNS_W15  = `http://schemas.microsoft.com/office/word/2012/wordml`
 	XMLNS_R    = `http://schemas.openxmlformats.org/officeDocument/2006/relationships`
 	XMLNS_WP   = `http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing`
 	XMLNS_WPS  = `http://schemas.microsoft.com/office/word/2010/wordprocessingShape`
@@ -182,6 +183,7 @@ type Document struct {
 	XMLW    string   `xml:"xmlns:w,attr"`              // cannot be unmarshalled in
 	XMLW10  string   `xml:"xmlns:w10,attr,omitempty"`  // cannot be unmarshalled in
 	XMLW14  string   `xml:"xmlns:w14,attr,omitempty"`  // cannot be unmarshalled in
+	XMLW15  string   `xml:"xmlns:w15,attr,omitempty"`  // cannot be unmarshalled in
 	XMLR    string   `xml:"xmlns:r,attr,omitempty"`    // cannot be unmarshalled in
 	XMLWP   string   `xml:"xmlns:wp,attr,omitempty"`   // cannot be unmarshalled in
 	XMLWPS  string   `xml:"xmlns:wps,attr,omitempty"`  // cannot be unmarshalled in
