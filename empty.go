@@ -79,7 +79,9 @@ func newEmptyA4File() *Docx {
 		mediaNameIdx: make(map[string]int, 64),
 		Numbering: Numbering{
 			XMLName: xml.Name{
-				Space: "w",
+				Space: "http://schemas.openxmlformats.org/wordprocessingml/2006/main",
+				// Space: "w",
+				Local: "numbering",
 			},
 			XMLW: XMLNS_W,
 		},
