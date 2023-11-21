@@ -82,6 +82,7 @@ func (s *SectPr) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 		switch se := t.(type) {
 		case xml.StartElement:
 			switch se.Name.Local {
+			// TODO: footerReference allows for multiple entries
 			case "footerReference":
 				var v FooterReference
 				if err := d.DecodeElement(&v, &se); err != nil {
