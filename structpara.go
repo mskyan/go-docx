@@ -711,11 +711,14 @@ func (p *Paragraph) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 					return err
 				}
 
-				if p.BookmarkStart == nil {
-					p.BookmarkStart = &[]*BookmarkStart{&value}
-				} else {
-					*p.BookmarkStart = append(*p.BookmarkStart, &value)
-				}
+				// 生成された document.xml では多重登録が発生しているので
+				// ここを無効化してみる。
+				// if p.BookmarkStart == nil {
+				// 	p.BookmarkStart = &[]*BookmarkStart{&value}
+				// } else {
+				// 	*p.BookmarkStart = append(*p.BookmarkStart, &value)
+				// }
+
 				elem = &value
 			case "bookmarkEnd":
 				var value BookmarkEnd
@@ -724,11 +727,14 @@ func (p *Paragraph) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 					return err
 				}
 
-				if p.BookmarkEnd == nil {
-					p.BookmarkEnd = &[]*BookmarkEnd{&value}
-				} else {
-					*p.BookmarkEnd = append(*p.BookmarkEnd, &value)
-				}
+				// 生成された document.xml では多重登録が発生しているので
+				// ここを無効化してみる。
+				// if p.BookmarkEnd == nil {
+				// 	p.BookmarkEnd = &[]*BookmarkEnd{&value}
+				// } else {
+				// 	*p.BookmarkEnd = append(*p.BookmarkEnd, &value)
+				// }
+
 				elem = &value
 			case "sdt":
 				var value StructuredDocumentTag
