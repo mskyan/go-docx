@@ -192,12 +192,12 @@ func (p *ParagraphProperties) UnmarshalXML(d *xml.Decoder, _ xml.StartElement) e
 				value.Val = v
 				p.KeepLines = &value
 			case "widowControl":
+				// 値がない場合は val は含めない
 				var value WidowControl
 				v := getAtt(tt.Attr, "val")
-				if v == "" {
-					v = "0"
+				if v != "" {
+					value.Val = v
 				}
-				value.Val = v
 				p.WidowControl = &value
 			case "sectPr":
 				var value SectPr

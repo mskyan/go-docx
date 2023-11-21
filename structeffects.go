@@ -332,7 +332,8 @@ func (s *Spacing) UnmarshalXML(d *xml.Decoder, start xml.StartElement) (err erro
 type Ind struct {
 	XMLName xml.Name `xml:"w:ind,omitempty"`
 
-	LeftChars      int `xml:"w:leftChars,attr,omitempty"`
+	LeftChars int `xml:"w:leftChars,attr"`
+	// LeftChars      int `xml:"w:leftChars,attr,omitempty"`
 	Left           int `xml:"w:left,attr,omitempty"`
 	FirstLineChars int `xml:"w:firstLineChars,attr,omitempty"`
 	FirstLine      int `xml:"w:firstLine,attr,omitempty"`
@@ -418,7 +419,8 @@ type NumPr struct {
 
 type Ilvl struct {
 	XMLName xml.Name `xml:"w:ilvl,omitempty"`
-	Val     int      `xml:"w:val,attr,omitempty"`
+	Val     int      `xml:"w:val,attr"`
+	// Val     int      `xml:"w:val,attr,omitempty"`
 }
 
 type NumID struct {
